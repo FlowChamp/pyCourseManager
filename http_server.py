@@ -21,6 +21,8 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(bytes(message, "utf8"))
 
         return
+    def parse_url(self):
+        args = [x for x in self.path.split('/') if x != '']
  
 def run():
   print('starting server...')
