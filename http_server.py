@@ -1,6 +1,7 @@
 #!/usr/bin/env python
  
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from api import CourseResource
  
 # HTTPRequestHandler class
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
@@ -15,10 +16,16 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
  
         # Send message back to client
-        message = "You GOT me!"
+        args = [x for x in self.path.split('/') if x is not '']
+
+        if len(args) == 1:
+            message = CourseResource.list()
+        else:
+            message = CourseResource.detail(args[1])
+        
         #message = f"You are at {self.path}" 
         # Write content as utf-8 data
-        self.wfile.write(bytes(message, "utf8"))
+        self.wfile.write()
 
         return
  

@@ -1,5 +1,33 @@
 from restless.resources import Resource
 
+courses = {
+    0: {
+        "prereqs": [],
+        "ge_type": None ,
+        "title": "Aerospace Fundamentals",
+        "course_type": "Free Elective",
+        "time": [
+            "1",
+            "Fall"
+        ],
+        "credits": 2.0,
+        "catalog": "AERO 121"
+    },
+    1: {
+        "prereqs": [],
+        "ge_type": "D4/E",
+        "title": "Healthy Living",
+        "course_type": "General Ed",
+        "time": [
+            "1",
+            "Fall"
+        ],
+        "credits": 4.0,
+        "catalog": "KINE 250"
+    }
+}
+
+
 class CourseResource(Resource):
     def is_authenticated(self):
         return True 
@@ -10,7 +38,7 @@ class CourseResource(Resource):
         Returns:
             All courses loaded into the Manager
         """
-        return CourseManager.courses
+        return courses
     
     def detail(self, cid):
         """GET /api/courses/<cid>
@@ -18,7 +46,7 @@ class CourseResource(Resource):
         Returns:
             Course <cid>, as given by the single argument
         """
-        return CourseManager.courses[cid]
+        return courses[cid]
 
     def create(self):
         """POST /api/courses
