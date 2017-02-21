@@ -34,9 +34,9 @@ else:
 # This should be read from a config file
 course_root = "/srv/pyflowchart/"
 
-parser = reqparse.RequestParser()
-parser.add_argument('course', type=str)
-parser.add_argument('chart', type=str)
+# parser = reqparse.RequestParser()
+# parser.add_argument('course', type=str)
+# parser.add_argument('chart', type=str)
 
 def check_if_loaded(func):
     def func_wrapper(self, **kwargs):
@@ -129,12 +129,12 @@ class GetStockChart(Resource):
 
 # /<user>/charts/<chart>
 class ChartResource(Resource):
+    @check_if_loaded 
     def get(self, user, chart):
-        return load_user_chart(user, chart)
+        return courses[user][chart]
     
     def post(self, user, chart):
         global courses
-        global last_course_ids
         course_ids = []
 
         path = course_root + "users/" + user + "/charts/" + chart + ".json" 
@@ -142,33 +142,39 @@ class ChartResource(Resource):
             abort(403, message=f"Will not overwrite {chart}. Please delete existing chart first")
 
         args = parser.parse_args()
-        new_chart_raw = args['chart']
-        new_chart = json.loads(new_chart_raw)
-        load_courses(user, chart, {'temp': new_chart}) 
+        # new_chart_raw = args['chart']
+        new_chart = json.loads(request.data)
+        
+        
 
-        with open(path, 'w') as flowfile:
-            outp_data = {
-                    'temp' : courses[user][chart]
-                    }
-            flowfile.write(json.dumps(outp_data, indent=4))
+        # load_courses(user, chart, {'temp': new_chart}) 
 
-        return new_chart, 201
+        # with open(path, 'w') as flowfile:
+            # outp_data = {
+                    # 'temp' : courses[user][chart]
+                    # }
+            # flowfile.write(json.dumps(outp_data, indent=4))
+
+        # return new_chart, 201
 
     @check_if_loaded 
     def put(self, user, chart):
+        # print("Putting!")
         global last_course_ids
         global courses 
         
         args = parser.parse_args()
-        new_course_raw = args['course']
-        new_course = json.loads(new_course_raw)
+        # new_course_raw = args['course']
+        new_course = json.loads(request.data)
+        # print(new_course)
         
-        c_id = last_course_ids[user][chart] + 1
-        last_course_ids[user][chart] += 1
+        # c_id = last_course_ids[user][chart] + 1
+        # last_course_ids[user][chart] += 1
         
-        courses[user][chart][c_id] = new_course  
+        # print(type(course[user][chart]))
+        # courses[user][chart][c_id] = new_course  
 
-        return { c_id: new_course }, 201
+        # return { c_id: new_course }, 201
     
     def delete(self, user, chart):
         global courses
@@ -183,14 +189,12 @@ class ChartResource(Resource):
 class CourseResource(Resource):
     @check_if_loaded
     def get(self, user, chart, c_id):
-        # if user not in courses:
-            # load_user_chart(user, chart)
-
         return courses[user][chart][c_id]
     
     @check_if_loaded 
     def put(self, user, chart, c_id):
-        print(request.form)
+        course = dict(request.form)
+        print(course)
         return courses[user][chart][c_id]
 
     @check_if_loaded
