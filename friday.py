@@ -1,10 +1,12 @@
 import json, os
 from flask import Flask, request
-from flask_restful import reqparse, Resource, Api, abort
+from flask_restful import Resource, Api, abort
+from flask_cors import CORS
 from datetime import datetime 
 
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 
 courses = {}
 last_course_ids = {}
@@ -101,6 +103,7 @@ def save_courses(user, chart):
                 }
         flowfile.write(json.dumps(outp_data, indent=4))
 
+
 # /
 class UsageResource(Resource):
     def get(self):
@@ -117,7 +120,7 @@ class UsageResource(Resource):
         }
     },
 
-"/stock_charts/<string:major>":
+"/stock_charts/<string:major>": {
     "GET": { 
         "Returns": "The stock flowchart for <major>"
         }
@@ -129,11 +132,13 @@ class UsageResource(Resource):
         },
     "POST": {
         "Description": "Create a new flowchart of name <chart>",
+        "Accepts" : "Flowchart in JSON format. Must be sent with application/json content header",
         "Returns": "The new flowchart",
-        "Note": "Chart cannot exist; if it does, please delete it first"
+        "Note": "Chart cannot exist; if it does, please delete it first."
         },
     "PUT": { 
         "Description": "Append a course to the flowchart",
+        "Accepts" : "Course in JSON format. Must be sent with application/json content header",
         "Returns": "The course data wrapped with the course ID assigned"
         },
     "DELETE": {
@@ -147,6 +152,7 @@ class UsageResource(Resource):
         },
     "PUT": {
         "Description" :"Updates the course at given id",
+        "Accepts" : "Course in JSON format. Must be sent with application/json content header",
         "Returns": "The new course at given id"
         },
     "DELETE": { 
@@ -159,12 +165,12 @@ class UsageResource(Resource):
 # /stock_charts
 class ListStockCharts(Resource):
     def get(self):
-        return {'charts': os.listdir(course_root + "stock_charts")}
+        return {'charts': [x[:x.find(".json")] for x in os.listdir(course_root + "stock_charts")]}
 
 # /<user>/charts
 class ListUserCharts(Resource):
     def get(self, user):
-        return {'charts': os.listdir(course_root + "users/" + user + "/charts/")}
+        return {'charts': [x[:x.find(".json")] for x in os.listdir(course_root + "users/" + user + "/charts/")]}
     
 # /stock_charts/<chart>
 class GetStockChart(Resource):
@@ -186,7 +192,7 @@ class ChartResource(Resource):
         if os.path.exists(path):
             abort(403, message=f"Will not overwrite {chart}. Please delete existing chart first")
 
-        new_chart = json.loads(request.form)
+        new_chart = request.get_json()
 
         load_courses(user, chart, {'temp': new_chart}) 
 
@@ -203,7 +209,7 @@ class ChartResource(Resource):
         global last_course_ids
         global courses 
         
-        new_course = dict(request.form)
+        new_course = request.get_json()
         
         c_id = last_course_ids[user][chart] + 1
         last_course_ids[user][chart] += 1
@@ -231,7 +237,7 @@ class CourseResource(Resource):
     def put(self, user, chart, c_id):
         global courses 
 
-        course = dict(request.form)
+        course = request.get_json()
         courses[user][chart][c_id] = course
 
         return courses[user][chart][c_id]
@@ -250,5 +256,5 @@ api.add_resource(ChartResource,   '/<string:user>/charts/<string:chart>')
 api.add_resource(CourseResource,  '/<string:user>/charts/<string:chart>/<int:c_id>')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=6500)
 
