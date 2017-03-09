@@ -127,6 +127,7 @@ class CourseManager():
 # /stock_charts
     class ListStockCharts(Resource):
         def get(self):
+            print("Listing stock!")
             return {'charts': [x[:x.find(".json")] 
                 for x in os.listdir(
                     CourseManager.course_root + "stock_charts")]}
@@ -203,7 +204,7 @@ class CourseManager():
             CourseManager.courses[user][chart][c_id] = course
             CourseManager.save_courses(user, chart)
 
-            return courses[user][chart][c_id]
+            return CourseManager.courses[user][chart][c_id]
 
         def delete(self, user, chart, c_id):
             CourseManager.ensure_loaded(user, chart)

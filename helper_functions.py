@@ -1,6 +1,6 @@
 import requests, json 
 
-url = "http://ssh.marshhouse.tech:6500"
+url = "http://127.0.0.1:4500"
 headers = {'content-type': 'application/json'}
 
 def get_chart(chart):
