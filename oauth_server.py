@@ -1,3 +1,10 @@
+"""Flow of things:
+    /authorize -- send user name and password, set grant 
+    /oauth/authorize -- send grant, get access token
+    /<protected_resource> -- require access token that corresponds with user
+"""
+
+
 class Client(db.Model):
     name = db.Column(db.String(40))
     description = db.Column(db.String(400))
