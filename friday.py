@@ -1,5 +1,6 @@
 import json, os, sqlalchemy
 from datetime import datetime, timedelta 
+from OpenSSL import SSL 
 
 from course_manager import CourseManager
 
@@ -46,6 +47,12 @@ class User(db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
+
+    def check_password(self, pw):
+        return pw == self.password
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns} 
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -117,6 +124,9 @@ class Grant(db.Model):
         if self._scopes:
             return self._scopes.split()
         return []
+    
+    def as_dict(self):
+        return {"client_id": self.client_id, "code": self.code}
 
 class Token(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -159,19 +169,19 @@ def load_grant(client_id, code):
     return Grant.query.filter_by(client_id=client_id, code=code).first()
 
 @oauth.grantsetter
-def save_grant(user, client_id, code, request, scopes, *args, **kwargs):
+def save_grant(user, client_id, code, scopes, *args, **kwargs):
     # decide the expires time yourself
     expires = datetime.utcnow() + timedelta(seconds=100)
     grant = Grant(
         client_id=client_id,
         code=code,
         _scopes=scopes,
-        user=user,
-        expires=expires
+        user=User.query.filter_by(username=user).first(),
+        expires=expires 
     )
     db.session.add(grant)
     db.session.commit()
-    return Grant
+    return grant
 
 @oauth.usergetter
 def get_user(username, password, *args, **kwargs):
@@ -191,8 +201,10 @@ def get_token(access_token=None, refresh_token=None):
 # /useradd 
 class NewUserResource(Resource):
     def post(self):
+        print("Here")
         try:
             data = request.get_json()
+            print(data)
             username = data['username']
             password = data['password']
 
@@ -213,10 +225,10 @@ class LoginResource(Resource):
         username = data['username']
         password = data['password']
         
-        ip = request.remote_address
+        ip = request.remote_addr
         client_id = f"{username}@{ip}"
 
-        if username not in users:
+        if db.session.query(User.username).filter_by(username=username).scalar is None: 
             abort(404, message=f"User {username} does not exist")
 
         if not password:
@@ -226,8 +238,8 @@ class LoginResource(Resource):
         if user:
             new_client = Client(name=client_id, client_id=client_id, 
                 _redirect_uris=('http://devjimheald.com:4500/authorized'))
-            grant = save_grant(username, client_id, 'steelcowboy', [username])
-            return grant
+            grant = save_grant(username, client_id, 'steelcowboy', username)
+            return grant.as_dict()
 
         else:
             abort(401, message=f"Password incorrect for {username}")
@@ -248,7 +260,7 @@ class LogoutResource(Resource):
         logout_user()
 
 # Login resources
-# api.add_resource(LoginResource,   '/login/<string:username>')
+api.add_resource(LoginResource,   '/authorize')
 api.add_resource(NewUserResource, '/useradd')
 # api.add_resource(LogoutResource,  '/logout')
 
