@@ -1,4 +1,4 @@
-import os, sqlalchemy, hashlib
+import os, sqlalchemy, hashlib, json 
 
 from flask import request
 from flask_login import *
@@ -6,9 +6,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, abort
 
 from functools import wraps
+from datetime import datetime, timedelta 
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+
+### THIS NEEDS TO BE READ FROM A FILE ###
+course_root = "/srv/pyflowchart"
 
 def requires_login(func):
     @wraps(func)
@@ -18,8 +22,10 @@ def requires_login(func):
         if user:
             global current_user 
             current_user = user 
-            if user.username in args:
-                print("You bet!")
+
+            if user.username in kwargs.values():
+                if user.is_expired():
+                    abort(403, message="Api key expired, please reauthenticate")
                 return func(*args, **kwargs)
         else:
             return login_required(func)(*args, **kwargs)
@@ -46,6 +52,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True)
     password = db.Column(db.String(20))
     api_key = db.Column(db.String(80))
+    api_key_expiration = db.Column(db.DateTime())
 
     def __init__(self, username, password):
         self.username = username
@@ -54,7 +61,7 @@ class User(db.Model):
 
     def check_password(self, pw):
         return pw == self.password
-
+    
     @property
     def is_authenticated(self):
         return True
@@ -65,8 +72,15 @@ class User(db.Model):
 
     @property
     def is_anonymous(self):
-        return False 
-    
+        return False
+
+    def set_api_key(self, key):
+        self.api_key = key 
+        self.api_key_expiration = datetime.now() + timedelta(minutes=30)
+
+    def is_expired(self):
+        return datetime.now() > self.api_key_expiration
+
     def get_id(self):
         return self.username
     
@@ -80,17 +94,32 @@ class LoginManager():
     class NewUserResource(Resource):
         def post(self):
             try:
-                print(request)
-                data = request.get_json()
-                username = data['username']
-                password = data['password']
+                username = request.authorization.username
+                password = request.authorization.password
 
-                if not password: 
-                    abort(401, message=f"Please provide password for {username} in the 'x-api-key' header")
+                if not username or not password: 
+                    abort(401, message=f"Please provide credentials using HTTP Basic Auth ")
                 
                 db.session.add(User(username, password))
                 db.session.commit()
+                
+                # Make sure user has a chart dir
+                user_dir = f"{course_root}/users/{username}"
+                if not os.path.isdir(user_dir):
+                    os.makedirs(user_dir+"/charts")
+
+                if not os.path.exists(user_dir+"/config"):
+                    with open(user_dir+"/config", 'a') as conf:
+                        config = {
+                                'userInfo' : {'year': 1,
+                                              'display_years': 4},
+                                'GEs'      : {}
+                                }
+                        conf.write(json.dumps(config, indent=4))
+
+
                 return {"message": "User created successfully"}
+
             except sqlalchemy.exc.IntegrityError:
                 abort(409, message=f"User {username} already exists")
 
@@ -98,41 +127,60 @@ class LoginManager():
     class LoginResource(Resource):
         """Send a POST request to the API to authenticate the user. If the user 
         authentication succeeds, give the client a grant token"""
-        def post(self):
+        def get(self):
             username = request.authorization.username
             password = request.authorization.password
             user = User.query.filter_by(username=username).first() 
 
             if user:
                 if user.check_password(password):
-                    # Let's create a token
-                    ip = request.remote_addr
-                    client_id = f"{username}@{ip}"
                     token = hashlib.sha1(os.urandom(128)).hexdigest() 
-                    
-                    # Add the token to the user
-                    user.api_key = token
+                    user.set_api_key(token)
                     db.session.commit()
 
                     login_user(user)
-                    print(user)
                     return {"x-api-key": token}
                 else:
                     abort(401, message=f"Password incorrect for {username}")
             else:
                 abort(404, message=f"User {username} does not exist")
+        
+        def post(self):
+            get(self)
 
     # /logout
     class LogoutResource(Resource):
         def post(self):
             api_key = request.headers.get('x-api-key')
-            print(request.headers)
+            if len(api_key) != 40:
+                abort(401, message="Api key must be 40 characters in length")
+
             user = User.query.filter_by(api_key=api_key).first()
-            print(user)
             if user:
                 global current_user
                 current_user = user
                 logout_user()
+                
+                # Destroy the session key
+                user.api_key = ''
+                db.session.commit()
+
                 return {"message": "User logged out"}
             else:
-                abort(410, message="No user associated with the given api key")
+                abort(401, message="No user associated with the given api key")
+
+    # /delete_account 
+    class DeleteUserResource(Resource): 
+        def post(self):
+            username = request.authorization.username
+            password = request.authorization.password
+
+            if not username or not password: 
+                abort(401, message="Please provide credentials using HTTP Basic Auth ")
+
+            user = User.query.filter_by(username=username).first()
+            if user is not None:
+                db.session.delete(user)
+                db.session.commit()
+            else:
+                abort(404, message=f"User {username} does not exist")

@@ -144,13 +144,18 @@ class CourseManager():
     }
     }
 
-# /stock_charts
-    class ListStockCharts(Resource):
+    # /stock_charts
+    class ListStockYears(Resource):
         def get(self):
-            print("Listing stock!")
-            return {'charts': [x[:x.find(".json")] 
-                for x in os.listdir(
-                    CourseManager.course_root + "stock_charts")]}
+            return {'charts': os.listdir(CourseManager.course_root + "stock_charts")}
+
+    # /stock_charts/<year>
+    class ListStockCharts(Resource):
+        def get(self, year):
+            return {'charts': 
+                    [x.rstrip(".json") for x in 
+                    os.listdir(CourseManager.course_root + f"stock_charts/{year}")]
+            }
 
 # /<user>/charts
     class ListUserCharts(Resource):
@@ -160,18 +165,20 @@ class CourseManager():
                 for x in os.listdir(
                     CourseManager.course_root + "users/" + user + "/charts/")]}
         
-# /stock_charts/<chart>
+# /stock_charts/<year>/<chart>
     class GetStockChart(Resource):
-        def get(self, major):
-            path = CourseManager.course_root + "stock_charts/" + major + ".json" 
+        def get(self, year, major):
+            path = CourseManager.course_root + f"stock_charts/{year}/{major}.json" 
             return CourseManager.load_course_file(path)
 
 # /<user>/charts/<chart>
     class ChartResource(Resource):
+        @requires_login
         def get(self, user, chart):
             CourseManager.ensure_loaded(user, chart)
             return CourseManager.courses[user][chart]
         
+        @requires_login
         def post(self, user, chart):
             print("You POSTed me!")
             course_ids = []
@@ -192,6 +199,7 @@ class CourseManager():
 
             return new_chart, 201
         
+        @requires_login
         def put(self, user, chart):
             new_course = request.get_json()
             
@@ -203,6 +211,7 @@ class CourseManager():
 
             return { c_id: new_course }, 201
         
+        @requires_login
         def delete(self, user, chart):
             path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json"
             if user in CourseManager.courses and chart in CourseManager.courses[user]:
@@ -213,10 +222,12 @@ class CourseManager():
 
 # /<user>/charts/<chart>/<id>
     class CourseResource(Resource):
+        @requires_login
         def get(self, user, chart, c_id):
             CourseManager.ensure_loaded(user, chart)
             return CourseManager.courses[user][chart][c_id]
         
+        @requires_login
         def put(self, user, chart, c_id):
             CourseManager.ensure_loaded(user, chart)
             course = request.get_json()
@@ -224,7 +235,8 @@ class CourseManager():
             CourseManager.save_courses(user, chart)
 
             return CourseManager.courses[user][chart][c_id]
-
+        
+        @requires_login
         def delete(self, user, chart, c_id):
             CourseManager.ensure_loaded(user, chart)
             del CourseManager.courses[user][chart][c_id]
