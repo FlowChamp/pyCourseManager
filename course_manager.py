@@ -1,8 +1,28 @@
 import json, os
+from datetime import datetime
+
 from flask import request
 from flask_restful import Resource, abort
 
+from login_manager import User, requires_login
+
 class CourseManager():
+    today = datetime.today()
+
+    fall = datetime(today.year, 9, 15)
+    winter = datetime(today.year, 1, 1)
+    spring = datetime(today.year, 3, 31)
+    summer = datetime(today.year, 6, 15)
+
+    if fall <= today <= datetime(today.year, 12, 31):
+        quarter = 0
+    elif winter <= today < spring:
+        quarter = 1
+    elif spring <= today < summer:
+        quarter = 2
+    else:
+        quarter = 3
+
     course_root = "/srv/pyflowchart/"
     courses = {}
     last_course_ids = {}
@@ -134,6 +154,7 @@ class CourseManager():
 
 # /<user>/charts
     class ListUserCharts(Resource):
+        @requires_login
         def get(self, user):
             return {'charts': [x[:x.find(".json")] 
                 for x in os.listdir(
@@ -172,7 +193,6 @@ class CourseManager():
             return new_chart, 201
         
         def put(self, user, chart):
-            print("You PUT me in my place!")
             new_course = request.get_json()
             
             c_id = CourseManager.last_course_ids[user][chart] + 1
@@ -198,7 +218,6 @@ class CourseManager():
             return CourseManager.courses[user][chart][c_id]
         
         def put(self, user, chart, c_id):
-            print("You PUT me in my place!")
             CourseManager.ensure_loaded(user, chart)
             course = request.get_json()
             CourseManager.courses[user][chart][c_id] = course
