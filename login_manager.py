@@ -5,6 +5,7 @@ from flask_login import *
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, abort
 
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime, timedelta 
 
@@ -50,17 +51,20 @@ def load_user_from_request(request):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(20))
-    api_key = db.Column(db.String(80))
+    password = db.Column(db.String(80))
+    api_key = db.Column(db.String(50))
     api_key_expiration = db.Column(db.DateTime())
 
     def __init__(self, username, password):
         self.username = username
-        self.password = password
+        self.set_password(password)
         self.api_key = ''
 
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
     def check_password(self, pw):
-        return pw == self.password
+        return check_password_hash(self.password, pw) 
     
     @property
     def is_authenticated(self):
