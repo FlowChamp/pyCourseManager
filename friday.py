@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 
 from course_manager import CourseManager
-from login_manager import LoginManager, login_manager, db, User 
-from secret import sqlalchemy_url  
+from login_manager import LoginManager, login_manager, db 
+from usage_resource import UsageResource
+from secret import sqlalchemy_url
 
 from flask import Flask
 from flask_cors import CORS
@@ -24,7 +25,6 @@ app.config.update(
     SECRET_KEY = 'secret_xxx'
 )
 
-
 ## API stuff
 
 # Login resources
@@ -33,7 +33,9 @@ api.add_resource(LoginManager.LoginResource,   '/authorize')
 api.add_resource(LoginManager.LogoutResource,  '/logout')
 api.add_resource(LoginManager.DeleteUserResource, '/delete_user')
 
-api.add_resource(CourseManager.UsageResource,   '/')
+# How to use my lovely program
+api.add_resource(UsageResource,   '/')
+
 api.add_resource(CourseManager.ListStockYears,  '/stock_charts')
 api.add_resource(CourseManager.ListStockCharts, '/stock_charts/<string:year>')
 api.add_resource(CourseManager.ListUserCharts,  '/<string:user>/charts')
