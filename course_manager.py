@@ -180,7 +180,6 @@ class CourseManager():
         
         @requires_login
         def post(self, user, chart):
-            print("You POSTed me!")
             course_ids = []
 
             path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json" 
