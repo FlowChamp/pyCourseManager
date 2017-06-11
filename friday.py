@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 
 from course_manager import CourseManager
-from login_manager import LoginManager, login_manager, db 
+from login_manager import LoginManager, login_manager, db
+import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
 
@@ -26,6 +27,11 @@ app.config.update(
 )
 
 ## API stuff
+
+# CourseDB resources
+api.add_resource(coursedb_manager.DepartmentResource, '/courses')
+api.add_resource(coursedb_manager.DepartmentListingResource, '/courses/<string:dept>')
+api.add_resource(coursedb_manager.CatalogCourseResource, '/courses/<string:dept>/<int:num>')
 
 # Login resources
 api.add_resource(LoginManager.NewUserResource, '/useradd')

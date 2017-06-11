@@ -93,6 +93,23 @@ class UsageResource(Resource):
                     "Requires": "Browser cookie or API key from valid login",
                     "Description": "Deletes the course"
                     }
+                },
+
+            "/courses": {
+                "GET": {
+                    "Returns": "A list of available departments"
+                    }
+                },
+            "/courses/<string:dept>": {
+                "GET": {
+                    "Returns": "A list of all courses within a given department"
+                    }
+                },
+
+            "/courses/<string:dept>/<int:num>": {
+                "GET": {
+                    "Returns": "The course associated with the number in the department"
+                    }
                 }
             }
         }
