@@ -29,7 +29,10 @@ def requires_login(func):
                     abort(403, message="Api key expired, please reauthenticate")
                 return func(*args, **kwargs)
         else:
-            return login_required(func)(*args, **kwargs)
+            if current_user.name in kwargs.values():
+                return login_required(func)(*args, **kwargs)
+            else:
+                abort(401, message=f"User {current_user.name} not authorized for the requested endpoint")
     return try_token      
 
 @login_manager.request_loader
@@ -150,7 +153,7 @@ class LoginManager():
                 abort(404, message=f"User {username} does not exist")
         
         def post(self):
-            get(self)
+            self.get()
 
     # /logout
     class LogoutResource(Resource):
