@@ -7,7 +7,7 @@ Endpoints:
 """
 from flask import request
 from flask_restful import Resource, abort
-import json, os
+import json, os, re
 
 coursedb_root = "/srv/pyflowchart/majors"
 
@@ -32,7 +32,7 @@ class DepartmentResource(Resource):
 class DepartmentListingResource(Resource):
     def get(self, dept):
         if dept in known_catalog:
-            return {'courses': list(known_catalog[dept])}
+            return {'courses': [re.sub("\D", "", course) for course in known_catalog[dept]]}
         else:
             abort(404, message=f"Department {dept} does not exist")
 
