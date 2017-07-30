@@ -29,7 +29,7 @@ def requires_login(func):
                     abort(403, message="Api key expired, please reauthenticate")
                 return func(*args, **kwargs)
         else:
-            if current_user.name in kwargs.values():
+            if current_user.username in kwargs.values():
                 return login_required(func)(*args, **kwargs)
             else:
                 abort(401, message=f"User {current_user.name} not authorized for the requested endpoint")

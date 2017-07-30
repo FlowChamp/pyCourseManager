@@ -13,6 +13,8 @@ def make_headers(func):
         for x in args:
             if isinstance(x, dict):
                 use_json = True
+            elif isinstance(x, int):
+                pass
             elif len(x) == 40:
                 use_key = True
                 auth_headers['x-api-key'] = x
@@ -60,7 +62,7 @@ def post_chart(user, chart, chart_dict, key, headers=None):
     return requests.post(f"{url}/{user}/charts/{chart}", data=json.dumps(chart_dict), headers=headers).json()
 
 @make_headers
-def delete_chart(user, chart, headers=None):
+def delete_chart(user, chart, key, headers=None):
     return requests.delete(f"{url}/{user}/charts/{chart}", headers=headers)
 
 @make_headers
