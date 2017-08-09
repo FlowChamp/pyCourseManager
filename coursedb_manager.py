@@ -5,47 +5,40 @@ Endpoints:
     /courses/<dept>         - list all courses within a given department
     /courses/<dept>/<num>   - Get the course by its number within the department 
 """
-from flask import request
 from flask_restful import Resource, abort
-import json, os, re
-
-coursedb_root = "/srv/pyflowchart/majors"
-
-known_catalog = {}
-
-for department_file in os.listdir(coursedb_root):
-    department_idf = department_file.split('_')[0].upper()
-    path = f"{coursedb_root}/{department_file}"
-    with open(path, 'r') as jsonfile:
-        try:
-            file_courses = json.loads(jsonfile.read())
-        except ValueError: 
-            print(f"JSON file {path} invalid or corrupt.")
-            continue
-
-    known_catalog[department_idf] = file_courses
+from bson import ObjectId
 
 class DepartmentResource(Resource):
+    def __init__(self, client):
+        self.db = client.db
+
     def get(self):
-        return {'departments': list(known_catalog)}
+        return {'departments': sorted(self.db.collection_names())}
 
 class DepartmentListingResource(Resource):
+    def __init__(self, client):
+        self.db = client.db
+
     def get(self, dept):
-        if dept in known_catalog:
-            return {'courses': [re.sub("\D", "", course) for course in known_catalog[dept]]}
+        if dept in self.db.collection_names():
+            return {'courses': sorted(self.db[dept].distinct('course_number'))}
         else:
             abort(404, message=f"Department {dept} does not exist")
 
 class CatalogCourseResource(Resource):
+    def __init__(self, client):
+        self.db = client.db
+
     def get(self, dept, num):
-        if dept in known_catalog:
-            idf = f"{dept} {num}"
-            if idf in known_catalog[dept]:
-                return known_catalog[dept][idf]
-            else:
-                abort(404, message=(f"Course {idf} does not exist "
-                        f"within department {dept}"))
+        if dept in self.db.collection_names():
+            raw_data = self.db[dept].find_one_or_404({"course_number": num})
+            new_dict = {}
+            for key,value in raw_data.items():
+                if isinstance(value, ObjectId):
+                    new_dict[key] = str(value)
+                else:
+                    new_dict[key] = value
+            return new_dict
         else:
             abort(404, message=f"Department {dept} does not exist")
-        
 
