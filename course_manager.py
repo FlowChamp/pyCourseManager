@@ -7,25 +7,28 @@ from flask_restful import Resource, abort
 from login_manager import User, requires_login
 
 class CourseManager():
-    today = datetime.today()
-
-    fall = datetime(today.year, 9, 15)
-    winter = datetime(today.year, 1, 1)
-    spring = datetime(today.year, 3, 31)
-    summer = datetime(today.year, 6, 15)
-
-    if fall <= today <= datetime(today.year, 12, 31):
-        quarter = 0
-    elif winter <= today < spring:
-        quarter = 1
-    elif spring <= today < summer:
-        quarter = 2
-    else:
-        quarter = 3
-
     course_root = "/srv/pyflowchart/"
     courses = {}
     last_course_ids = {}
+
+    def __init__(self, db):
+        today = datetime.today()
+
+        fall = datetime(today.year, 9, 15)
+        winter = datetime(today.year, 1, 1)
+        spring = datetime(today.year, 3, 31)
+        summer = datetime(today.year, 6, 15)
+
+        if fall <= today <= datetime(today.year, 12, 31):
+            self.quarter = 0
+        elif winter <= today < spring:
+            self.quarter = 1
+        elif spring <= today < summer:
+            self.quarter = 2
+        else:
+            self.quarter = 3
+
+        self.catalog_db = db.catalog
 
     def ensure_loaded(user, chart):
         if user not in CourseManager.courses:
@@ -157,7 +160,7 @@ class CourseManager():
                     os.listdir(CourseManager.course_root + f"stock_charts/{year}")]
             }
 
-# /<user>/charts
+    # /<user>/charts
     class ListUserCharts(Resource):
         @requires_login
         def get(self, user):
@@ -165,13 +168,13 @@ class CourseManager():
                 for x in os.listdir(
                     CourseManager.course_root + "users/" + user + "/charts/")]}
         
-# /stock_charts/<year>/<chart>
+    # /stock_charts/<year>/<chart>
     class GetStockChart(Resource):
         def get(self, year, major):
             path = CourseManager.course_root + f"stock_charts/{year}/{major}.json" 
             return CourseManager.load_course_file(path)
 
-# /<user>/charts/<chart>
+    # /<user>/charts/<chart>
     class ChartResource(Resource):
         @requires_login
         def get(self, user, chart):
