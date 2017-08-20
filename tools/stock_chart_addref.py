@@ -32,6 +32,8 @@ def main():
 
         course_data["catalog_id"] = str(obj['_id'])
         course_data["department"] = dept
+        course_data["flags"] = []
+        course_data["color"] = []
         print(course_data)
         input()
                 

@@ -10,11 +10,13 @@ def get_json_data(path):
 
 def main():
     client = MongoClient()
-    db = client.pycoursemanager
+    db = client.cpslo
+    collection = db.catalog
 
     json_files = glob.glob(MAJOR_DIR + "/*.json")
     json_data = [get_json_data(path) for path in json_files]
     new_json_data = []
+
     for catalog in json_data:
         found_catalog = False
         dept = None
@@ -25,11 +27,10 @@ def main():
                 dept = k.split()[0]
                 found_catalog = True
 
-            # Let's get rid of the department name too, since it's in a collection
+            v["department"] = dept
             v["course_number"] = int(k[-3:])
             course_data.append(v)
 
-        collection = db[dept]
         collection.insert_many(course_data)
 
 
