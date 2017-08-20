@@ -11,7 +11,7 @@ from flask_cors import CORS
 from flask_restful import Api
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_pymongo import PyMongo
+from pymongo import MongoClient
 
 ## Setup
 app = Flask(__name__)
@@ -24,17 +24,27 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI = sqlalchemy_url,
     SQLALCHEMY_TRACK_MODIFICATIONS = True,
     SECRET_KEY = 'secret_xxx',
-    MONGO_DBNAME = "catalog"
 )
 
-mongo = PyMongo(app)
 db.init_app(app)
+
+mongo = MongoClient()
+
 ## API stuff
 
 # CourseDB resources
-api.add_resource(coursedb_manager.DepartmentResource, '/courses', resource_class_kwargs={'client': mongo})
-api.add_resource(coursedb_manager.DepartmentListingResource, '/courses/<string:dept>', resource_class_kwargs={'client': mongo})
-api.add_resource(coursedb_manager.CatalogCourseResource, '/courses/<string:dept>/<int:num>', resource_class_kwargs={'client': mongo})
+api.add_resource(coursedb_manager.DepartmentResource, 
+    '/<string:school>/courses',
+    resource_class_kwargs={'client': mongo}
+    )
+api.add_resource(coursedb_manager.DepartmentListingResource, 
+    '/<string:school>/courses/<string:dept>',
+    resource_class_kwargs={'client': mongo}
+    )
+api.add_resource(coursedb_manager.CatalogCourseResource, 
+    '/<string:school>/courses/<string:dept>/<int:num>',
+    resource_class_kwargs={'client': mongo}
+    )
 
 # Login resources
 api.add_resource(LoginManager.NewUserResource, '/useradd')
