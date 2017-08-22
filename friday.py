@@ -55,10 +55,21 @@ api.add_resource(LoginManager.DeleteUserResource, '/delete_user')
 # How to use my lovely program
 api.add_resource(UsageResource,   '/')
 
-api.add_resource(CourseManager.ListStockYears,  '/stock_charts')
-api.add_resource(CourseManager.ListStockCharts, '/stock_charts/<string:year>')
+api.add_resource(CourseManager.ListStockYears,  
+    '/<string:school>/stock_charts',
+    resource_class_kwargs={'client': mongo}
+    )
+api.add_resource(CourseManager.ListStockCharts, 
+    '/<string:school>/stock_charts/<string:year>',
+    resource_class_kwargs={'client': mongo}
+    )
+
+api.add_resource(CourseManager.GetStockChart,   
+    '/<string:school>/stock_charts/<string:year>/<string:major>',
+    resource_class_kwargs={'client': mongo}
+    )
+
 api.add_resource(CourseManager.ListUserCharts,  '/<string:user>/charts')
-api.add_resource(CourseManager.GetStockChart,   '/stock_charts/<string:year>/<string:major>')
 api.add_resource(CourseManager.ChartResource,   '/<string:user>/charts/<string:chart>')
 api.add_resource(CourseManager.CourseResource,  '/<string:user>/charts/<string:chart>/<int:c_id>')
 

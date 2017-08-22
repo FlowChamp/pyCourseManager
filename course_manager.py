@@ -149,16 +149,58 @@ class CourseManager():
 
     # /stock_charts
     class ListStockYears(Resource):
-        def get(self):
-            return {'charts': os.listdir(CourseManager.course_root + "stock_charts")}
+        def __init__(self, client):
+            self.client = client
+
+        def get(self, school):
+            return {'charts': self.client[school].stock_charts.distinct("year")}
 
     # /stock_charts/<year>
     class ListStockCharts(Resource):
-        def get(self, year):
+        def __init__(self, client):
+            self.client = client
+
+        def get(self, school, year):
             return {'charts': 
-                    [x.rstrip(".json") for x in 
-                    os.listdir(CourseManager.course_root + f"stock_charts/{year}")]
-            }
+                    self.client[school].stock_charts.find({"year": year}).distinct("major")}
+
+    # /stock_charts/<year>/<chart>
+    class GetStockChart(Resource):
+        def __init__(self, client):
+            self.client = client
+
+        def get(self, school, year, major):
+            chart = self.client[school].stock_charts.find({"year": year, "major": major})
+            if chart:
+                new_chart = {}
+                for block in chart:
+                    bid_obj = block.pop('_id', None)
+                    bid = str(bid_obj)
+                    new_chart[bid] = {}
+
+                    if 'catalog_id' in block:
+                        if isinstance(block['catalog_id'], list):
+                            courses = []
+                            ids = block.pop('catalog_id', None)
+                            for cid in ids:
+                                course_data = self.client[school].catalog.find_one(
+                                        {"_id": cid})
+                                course_data["_id"] = str(course_data["_id"])
+                                courses.append(course_data)
+                            new_chart[bid]['course_data'] = courses
+                        else:
+                            cid = block.pop('catalog_id', None)
+                            course_data = self.client[school].catalog.find_one(
+                                    {"_id": cid})
+                            course_data["_id"] = str(course_data["_id"])
+                            new_chart[bid]['course_data'] = course_data
+                            
+
+                    new_chart[bid]['block_metadata'] = block
+
+                return new_chart 
+            else:
+                abort(404, message=f"Either year is invalid or major does not exist") 
 
     # /<user>/charts
     class ListUserCharts(Resource):
@@ -168,12 +210,6 @@ class CourseManager():
                 for x in os.listdir(
                     CourseManager.course_root + "users/" + user + "/charts/")]}
         
-    # /stock_charts/<year>/<chart>
-    class GetStockChart(Resource):
-        def get(self, year, major):
-            path = CourseManager.course_root + f"stock_charts/{year}/{major}.json" 
-            return CourseManager.load_course_file(path)
-
     # /<user>/charts/<chart>
     class ChartResource(Resource):
         @requires_login

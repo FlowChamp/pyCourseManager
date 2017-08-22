@@ -18,8 +18,6 @@ def check_request(func):
     def inner(self, school, dept=None, num=None):
         arg = None
         
-        print(self.__class__)
-
         if school not in self.client.database_names():
             abort(404, message=f"No database exists for school {school}")
         else:

@@ -116,12 +116,12 @@ def main():
                 del course_data[key]
 
             course_data["flags"] = []
+            course_data["year"] = "15-17"
             # course_data["school"] = "cpslo"
             
             chart_name = fn 
             chart_name = chart_name.split("/")[-1]
             chart_name = chart_name.strip(".json")
-            chart_name = chart_name.replace("_", " ")
             
             course_data["major"] = chart_name
 
