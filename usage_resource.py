@@ -28,21 +28,24 @@ class UsageResource(Resource):
                 }
             },
 
-            "/stock_charts": {
+            "/<string:school>/stock_charts": {
                 "GET": {
-                    "Returns": "A listing of all available catalog years to find charts for"
+                    "Returns": """A listing of all available catalog years
+                    to find charts for at the given <school>"""
                 }
             },
 
-            "/stock_charts/<string:year>": {
+            "/<string:school>/stock_charts/<string:year>": {
                 "GET": { 
-                    "Returns": "A listing of all charts associated with the catalog year <year>"
+                    "Returns": """A listing of all charts associated 
+                    with the catalog year <year> at the given <school>"""
                     }
                 },
 
-            "/stock_charts/<string:year>/<string:major>": {
+            "/<string:school>/stock_charts/<string:year>/<string:major>": {
                 "GET": { 
-                    "Returns": "The flowchart for <major> for the catalog year <year>"
+                    "Returns": """The flowchart for <major> for the catalog
+                    year <year> at the given <school>"""
                     }
                 },
 
