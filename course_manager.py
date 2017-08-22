@@ -89,64 +89,6 @@ class CourseManager():
                     }
             flowfile.write(json.dumps(outp_data, indent=4))
 
-# /
-    class UsageResource(Resource):
-        def get(self):
-            return {"Usage": {
-    "/stock_charts": {
-        "GET": {
-            "Returns": "A listing of all available stock charts"
-            }
-        },
-
-    "/<string:user>/charts": {
-        "GET": { 
-            "Returns": "A listing of all charts available for the user"
-            }
-        },
-
-    "/stock_charts/<string:major>": {
-        "GET": { 
-            "Returns": "The stock flowchart for <major>"
-            }
-        },
-
-    "/<string:user>/charts/<string:chart>": {
-        "GET": { 
-            "Returns": "The user's flowchart"
-            },
-        "POST": {
-            "Description": "Create a new flowchart of name <chart>",
-            "Accepts" : "Flowchart in JSON format. Must be sent with application/json content header",
-            "Returns": "The new flowchart",
-            "Note": "Chart cannot exist; if it does, please delete it first."
-            },
-        "PUT": { 
-            "Description": "Append a course to the flowchart",
-            "Accepts" : "Course in JSON format. Must be sent with application/json content header",
-            "Returns": "The course data wrapped with the course ID assigned"
-            },
-        "DELETE": {
-            "Descripition": "Deletes the flowchart from the server"
-            }
-        },
-
-    "/<string:user>/charts/<string:chart>/<int:id>": {
-        "GET": {
-            "Returns": "The course of id <id>"
-            },
-        "PUT": {
-            "Description" :"Updates the course at given id",
-            "Accepts" : "Course in JSON format. Must be sent with application/json content header",
-            "Returns": "The new course at given id"
-            },
-        "DELETE": { 
-            "Description": "Deletes the course"
-            }
-        }
-    }
-    }
-
     # /stock_charts
     class ListStockYears(Resource):
         def __init__(self, client):
