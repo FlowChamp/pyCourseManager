@@ -9,7 +9,7 @@ class UsageResource(Resource):
                 }
             },
 
-            "/authorize": {
+            "/<string:school>/authorize": {
                 "GET": {
                     "Requires": "HTTP Basic Authentication to authenticate the new user",
                     "Returns": "An API Key for use by non-web-browser clients which is valid for 30 minutes"

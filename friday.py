@@ -5,9 +5,9 @@ from login_manager import LoginManager, login_manager, db
 import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
+from login import LoginResource
 
 from flask import Flask
-from flask_cors import CORS
 from flask_restful import Api
 
 from flask_sqlalchemy import SQLAlchemy
@@ -16,7 +16,6 @@ from pymongo import MongoClient
 ## Setup
 app = Flask(__name__)
 api = Api(app)
-CORS(app)
 
 login_manager.init_app(app)
 
@@ -48,7 +47,7 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
 
 # Login resources
 api.add_resource(LoginManager.NewUserResource, '/useradd')
-api.add_resource(LoginManager.LoginResource,   '/authorize')
+api.add_resource(LoginResource,   '/<string:school>/authorize')
 api.add_resource(LoginManager.LogoutResource,  '/logout')
 api.add_resource(LoginManager.DeleteUserResource, '/delete_user')
 
