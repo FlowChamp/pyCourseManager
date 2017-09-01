@@ -30,46 +30,45 @@ db.init_app(app)
 mongo = MongoClient()
 
 ## API stuff
-API_PREFIX = "/api"
 
 # CourseDB resources
 api.add_resource(coursedb_manager.DepartmentResource, 
-    f'{api}/<string:school>/courses',
+    '/api/<string:school>/courses',
     resource_class_kwargs={'client': mongo}
     )
 api.add_resource(coursedb_manager.DepartmentListingResource, 
-    f'{api}/<string:school>/courses/<string:dept>',
+    '/api/<string:school>/courses/<string:dept>',
     resource_class_kwargs={'client': mongo}
     )
 api.add_resource(coursedb_manager.CatalogCourseResource, 
-    f'{api}/<string:school>/courses/<string:dept>/<int:num>',
+    '/api/<string:school>/courses/<string:dept>/<int:num>',
     resource_class_kwargs={'client': mongo}
     )
 
 # Login resources
-api.add_resource(LoginResource,   f'{api}/<string:school>/authorize')
-api.add_resource(LoginManager.LogoutResource,  f'{api}/logout')
+api.add_resource(LoginResource,   '/api/<string:school>/authorize')
+api.add_resource(LoginManager.LogoutResource,  '/api/logout')
 
 # How to use my lovely program
-api.add_resource(UsageResource,   f'{api}/')
+api.add_resource(UsageResource,   '/api')
 
 api.add_resource(CourseManager.ListStockYears,  
-    f'{api}/<string:school>/stock_charts',
+    '/api/<string:school>/stock_charts',
     resource_class_kwargs={'client': mongo}
     )
 api.add_resource(CourseManager.ListStockCharts, 
-    f'{api}/<string:school>/stock_charts/<string:year>',
+    '/api/<string:school>/stock_charts/<string:year>',
     resource_class_kwargs={'client': mongo}
     )
 
 api.add_resource(CourseManager.GetStockChart,   
-    f'{api}/<string:school>/stock_charts/<string:year>/<string:major>',
+    '/api/<string:school>/stock_charts/<string:year>/<string:major>',
     resource_class_kwargs={'client': mongo}
     )
 
-api.add_resource(CourseManager.ListUserCharts,  f'{api}/<string:user>/charts')
-api.add_resource(CourseManager.ChartResource,   f'{api}/<string:user>/charts/<string:chart>')
-api.add_resource(CourseManager.CourseResource,  f'{api}/<string:user>/charts/<string:chart>/<int:c_id>')
+api.add_resource(CourseManager.ListUserCharts,  '/api/<string:user>/charts')
+api.add_resource(CourseManager.ChartResource,   '/api/<string:user>/charts/<string:chart>')
+api.add_resource(CourseManager.CourseResource,  '/api/<string:user>/charts/<string:chart>/<int:c_id>')
 
 # @app.before_first_request
 # def create_database():
