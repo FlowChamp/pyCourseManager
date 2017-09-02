@@ -3,53 +3,41 @@ from flask_restful import Resource
 class UsageResource(Resource):
     def get(self):
         return {"Usage": {
-            "/useradd": {
-                "POST": {
-                    "Requires": "HTTP Basic Authentication describing the username and password for the new user"
-                }
-            },
-
-            "/<string:school>/authorize": {
+            "/api/<string:school>/authorize": {
                 "GET": {
                     "Requires": "HTTP Basic Authentication to authenticate the new user",
                     "Returns": "An API Key for use by non-web-browser clients which is valid for 30 minutes"
                 }
             },
 
-            "/logout": {
+            "/api/logout": {
                 "POST": {
                     "Requires": "A browser cookie or an API key for the user session"
                 }
             },
 
-            "/delete_user": {
-                "POST": {
-                    "Requires": "HTTP Basic Authentication to authenticate user one last time"
-                }
-            },
-
-            "/<string:school>/stock_charts": {
+            "/api/<string:school>/stock_charts": {
                 "GET": {
                     "Returns": """A listing of all available catalog years
                     to find charts for at the given <school>"""
                 }
             },
 
-            "/<string:school>/stock_charts/<string:year>": {
+            "/api/<string:school>/stock_charts/<string:year>": {
                 "GET": { 
                     "Returns": """A listing of all charts associated 
                     with the catalog year <year> at the given <school>"""
                     }
                 },
 
-            "/<string:school>/stock_charts/<string:year>/<string:major>": {
+            "/api/<string:school>/stock_charts/<string:year>/<string:major>": {
                 "GET": { 
                     "Returns": """The flowchart for <major> for the catalog
                     year <year> at the given <school>"""
                     }
                 },
 
-            "/<string:user>/charts": {
+            "/api/<string:user>/charts": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "A listing of all charts available for the user"
@@ -57,7 +45,7 @@ class UsageResource(Resource):
             },
 
 
-            "/<string:user>/charts/<string:chart>": {
+            "/api/<string:user>/charts/<string:chart>": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "The user's flowchart"
@@ -81,7 +69,7 @@ class UsageResource(Resource):
                     }
                 },
 
-            "/<string:user>/charts/<string:chart>/<int:id>": {
+            "/api/<string:user>/charts/<string:chart>/<int:id>": {
                 "GET": {
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "The course of id <id>"
@@ -98,18 +86,18 @@ class UsageResource(Resource):
                     }
                 },
 
-            "/courses": {
+            "/api/courses": {
                 "GET": {
                     "Returns": "A list of available departments"
                     }
                 },
-            "/courses/<string:dept>": {
+            "/api/courses/<string:dept>": {
                 "GET": {
                     "Returns": "A list of all courses within a given department"
                     }
                 },
 
-            "/courses/<string:dept>/<int:num>": {
+            "/api/courses/<string:dept>/<int:num>": {
                 "GET": {
                     "Returns": "The course associated with the number in the department"
                     }
