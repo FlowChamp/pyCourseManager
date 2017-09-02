@@ -26,6 +26,7 @@ or something.
 - python >= 3.6 (gotta have those formatted strings!)
 - python-pymongo
 - python-flask
+- python-flask-cors
 - python-flask-login
 - python-flask-restful
 - python-flask-sqlalchemy
