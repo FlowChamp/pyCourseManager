@@ -29,3 +29,4 @@ or something.
 - python-flask-login
 - python-flask-restful
 - python-flask-sqlalchemy
+- python-lxml (for logging in with CAS)
