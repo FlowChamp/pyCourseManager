@@ -9,7 +9,6 @@ from login import LoginResource
 
 from flask import Flask
 from flask_restful import Api
-from flask_cors import CORS
 
 from flask_sqlalchemy import SQLAlchemy
 from pymongo import MongoClient
@@ -17,7 +16,12 @@ from pymongo import MongoClient
 ## Setup
 app = Flask(__name__)
 api = Api(app)
-CORS(app)
+
+### UNCOMMENT TO ENABLE CORS ### 
+###         IF NEEDED        ###
+# from flask_cors import CORS
+# CORS(app)
+################################
 
 login_manager.init_app(app)
 
