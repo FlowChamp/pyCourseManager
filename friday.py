@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 
 from course_manager import CourseManager
-from login_manager import LoginManager, login_manager, db
+# from login_manager import LoginManager, login_manager, db
 import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
-from login import LoginResource
+from login import AuthorizeResource, db
 
 from flask import Flask
 from flask_restful import Api
@@ -23,7 +23,7 @@ api = Api(app)
 # CORS(app)
 ################################
 
-login_manager.init_app(app)
+# login_manager.init_app(app)
 
 app.config.update(
     SQLALCHEMY_DATABASE_URI = sqlalchemy_url,
@@ -52,7 +52,7 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
     )
 
 # Login resources
-api.add_resource(LoginResource,   '/api/<string:school>/authorize')
+api.add_resource(AuthorizeResource,   '/api/<string:school>/authorize')
 api.add_resource(LoginManager.LogoutResource,  '/api/logout')
 
 # How to use my lovely program
