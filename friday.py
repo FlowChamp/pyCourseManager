@@ -72,6 +72,7 @@ api.add_resource(CourseManager.GetStockChart,
     resource_class_kwargs={'client': mongo}
     )
 
+api.add_resource(CourseManager.TestUserAuth,    '/api/<string:school>/users/<string:user>')
 api.add_resource(CourseManager.ListUserCharts,  '/api/<string:user>/charts')
 api.add_resource(CourseManager.ChartResource,   '/api/<string:user>/charts/<string:chart>')
 api.add_resource(CourseManager.CourseResource,  '/api/<string:user>/charts/<string:chart>/<int:c_id>')
