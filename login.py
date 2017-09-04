@@ -20,6 +20,9 @@ def requires_login(func):
         username = f"{school}-{uname}"
 
         user = User.query.filter_by(username=username).first()
+        # Some sanity checks on the user
+        if not user:
+            abort(404, message=f"User {uname} not found with the selected institution")
         if user.is_expired():
             abort(403, message="Api key expired, please reauthenticate")
 
