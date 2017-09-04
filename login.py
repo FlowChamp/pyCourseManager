@@ -11,6 +11,35 @@ import lxml.html
 
 db = SQLAlchemy()
 
+def requires_login(func):
+    def try_token(*args, **kwargs):
+        authorized = False
+
+        uname = kwargs['user']
+        school = kwargs['school']
+        username = f"{school}-{uname}"
+
+        user = User.query.filter_by(username=username).first()
+        if user.is_expired():
+            abort(403, message="Api key expired, please reauthenticate")
+
+        token = request.cookies.get('friday-login-token')
+        api_key = request.headers.get('x-api-key')
+
+        if token is not None:
+            authorized = user.check_token(token)
+        elif api_key:
+            authorized = user.check_token(api_key)
+        else:
+            abort(400, message="No authorization token found. Is the user logged in?")
+
+        if not authorized:
+            abort(401, message=f"User {uname} is not authorized for the requested endpoint")
+
+        return func(*args, **kwargs)
+
+    return try_token      
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -29,7 +58,7 @@ class User(db.Model):
         return check_password_hash(self.token, tk) 
     
     def is_expired(self):
-        return datetime.now() > self.api_key_expiration
+        return datetime.now() > self.token_expiration
 
     def __str__(self):
         return f"{self.username}: {self.token}"
