@@ -1,10 +1,17 @@
+"""
+Notes:
+    * for any request requiring the user to be logged in, the corresponding function
+        must have a 'user' and 'school' argument
+"""
+
 import json, os
 from datetime import datetime
 
 from flask import request
 from flask_restful import Resource, abort
 
-from login_manager import User, requires_login
+# from login_manager import User, requires_login
+from login import User, requires_login
 
 class CourseManager():
     course_root = "/srv/pyflowchart/"
@@ -143,6 +150,13 @@ class CourseManager():
                 return new_chart 
             else:
                 abort(404, message=f"Either year is invalid or major does not exist") 
+
+    # /api/<school>/users/<user>
+    class TestUserAuth(Resource):
+        @requires_login
+        def get(self, school, user):
+            return {"message": f"User {user} at school {school} is " +
+                "successfully authenticated for this endpoint"}
 
     # /<user>/charts
     class ListUserCharts(Resource):
