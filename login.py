@@ -61,14 +61,20 @@ class AuthorizeResource(Resource):
         result = resp.headers['X-Frame-Options']
         if result != "DENY":
             cookie = resp.cookies['org.jasig.portal.PORTLET_COOKIE']
-            # expiry = resp.cookies['sessionExpiry']
             token = hashlib.sha256(str.encode(cookie)).hexdigest()
 
-            user = User(username, token)
-            db.session.add(user)
+            username = f"{school}-{username}"
+
+            tmp_user = User.query.filter_by(username=username).first()
+            if tmp_user is not None:
+                tmp_user.set_token(token)
+            else: 
+                user = User(username, token)
+                db.session.add(user)
+
             db.session.commit()
             
-            utc_time = None
+            utc_time = datetime.utcnow() + timedelta(minutes=30)
             date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
             return {"token": token}, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}

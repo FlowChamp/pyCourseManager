@@ -53,7 +53,7 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
 
 # Login resources
 api.add_resource(AuthorizeResource,   '/api/<string:school>/authorize')
-api.add_resource(LoginManager.LogoutResource,  '/api/logout')
+# api.add_resource(LoginManager.LogoutResource,  '/api/logout')
 
 # How to use my lovely program
 api.add_resource(UsageResource,   '/api')
@@ -76,9 +76,9 @@ api.add_resource(CourseManager.ListUserCharts,  '/api/<string:user>/charts')
 api.add_resource(CourseManager.ChartResource,   '/api/<string:user>/charts/<string:chart>')
 api.add_resource(CourseManager.CourseResource,  '/api/<string:user>/charts/<string:chart>/<int:c_id>')
 
-# @app.before_first_request
-# def create_database():
-    # db.create_all()
+@app.before_first_request
+def create_database():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4500)
