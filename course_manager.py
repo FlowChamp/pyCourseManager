@@ -106,7 +106,7 @@ class ListUserCharts(Resource):
         
         return charts.distinct("chart_name") 
 
-# /api/<school>/users/<user>/newchart
+# /api/<school>/users/<user>/import
 class NewChartResource(Resource):
     def __init__(self, client):
         self.client = client

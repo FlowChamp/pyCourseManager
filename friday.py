@@ -78,7 +78,7 @@ api.add_resource(course_manager.TestUserAuth,
     )
 
 api.add_resource(course_manager.NewChartResource,
-    '/api/<string:school>/users/<string:user>/newchart',
+    '/api/<string:school>/users/<string:user>/import',
     resource_class_kwargs={'client': mongo}
     )
 
