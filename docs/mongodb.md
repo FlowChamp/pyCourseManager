@@ -7,8 +7,12 @@ school
         -> #courses
     -> stock_charts
         -> #charts
-    -> user_charts
+
+school-users
+    -> #user
         -> #charts
+    -> #user-config
+        -> #configs
 
 # Courses
 A course within the stucture contains all of the necessary data to fully describe

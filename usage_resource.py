@@ -37,6 +37,15 @@ class UsageResource(Resource):
                     }
                 },
 
+            "/api/<string:school>/users/<string:user>/import": {
+                "POST": { 
+                    "Requires": "Browser cookie or API key from valid login",
+                    "Accepts": ("A JSON description of the chart the user wishes "
+                        "to import in the format {'target': target_stock_chart, "
+                        "'year': chart_year, 'destination': user_specified_name}")
+                }
+            },
+
             "/api/<string:user>/charts": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
