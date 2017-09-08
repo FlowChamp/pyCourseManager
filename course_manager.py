@@ -13,226 +13,191 @@ from flask_restful import Resource, abort
 # from login_manager import User, requires_login
 from login import User, requires_login
 
-class CourseManager():
-    course_root = "/srv/pyflowchart/"
-    courses = {}
-    last_course_ids = {}
+def dereference_chart_ids(client, school, chart):
+    """
+    MongoClient string dict -> dict
 
-    def __init__(self, db):
-        today = datetime.today()
+    Convert the chart of block metadata into a split chart, that contains courses
+    of both course data and block metadata
+    """
+    new_chart = {}
+    for block in chart:
+        bid_obj = block.pop('_id', None)
+        bid = str(bid_obj)
+        block['_id'] = bid
+        new_chart[bid] = {}
 
-        fall = datetime(today.year, 9, 15)
-        winter = datetime(today.year, 1, 1)
-        spring = datetime(today.year, 3, 31)
-        summer = datetime(today.year, 6, 15)
-
-        if fall <= today <= datetime(today.year, 12, 31):
-            self.quarter = 0
-        elif winter <= today < spring:
-            self.quarter = 1
-        elif spring <= today < summer:
-            self.quarter = 2
-        else:
-            self.quarter = 3
-
-        self.catalog_db = db.catalog
-
-    def ensure_loaded(user, chart):
-        if user not in CourseManager.courses:
-            CourseManager.load_user_chart(user, chart)
-        elif chart not in CourseManager.courses[user]:
-            CourseManager.load_user_chart(user, chart)
-
-    def load_course_file(path):
-        if not os.path.isfile(path):
-            abort(404, message=f"File {path} does not exist")
-        
-        with open(path, 'r') as jsonfile:
-            try:
-                file_courses = json.loads(jsonfile.read())
-            except ValueError: 
-                abort(500, message=(f"JSON file {path} invalid or corrupt. "
-                    "Please contact your server administrator"))
-
-        return file_courses 
-
-    def load_courses(user, chart, course_dict):
-        if user not in CourseManager.courses:
-            print(f"Loading user {user}")
-            CourseManager.courses[user] = {}
-
-        print(f"Loading {user}/{chart}")
-        CourseManager.courses[user][chart] = {}
-        
-        if user not in CourseManager.last_course_ids:
-            CourseManager.last_course_ids[user] = {}
-        
-        course_ids = []
-        
-        user_courses = {} 
-        for course_id, course in next(iter(course_dict.values())).items():
-            course_id = int(course_id)
-            user_courses[course_id] = course
-            course_ids.append(course_id)
-
-        last_course_id = max(course_ids)
-
-        CourseManager.courses[user][chart] = user_courses
-        CourseManager.last_course_ids[user][chart] = last_course_id 
-        return user_courses
-
-    def load_user_chart(user,chart):
-        path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json" 
-        file_courses = CourseManager.load_course_file(path)
-        return CourseManager.load_courses(user, chart, file_courses)
-
-    def save_courses(user, chart):
-        """Save all courses to the given filename."""
-        path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json" 
-
-        with open(path, 'w') as flowfile:
-            outp_data = {
-                    'temp' : CourseManager.courses[user][chart]
-                    }
-            flowfile.write(json.dumps(outp_data, indent=4))
-
-    # /stock_charts
-    class ListStockYears(Resource):
-        def __init__(self, client):
-            self.client = client
-
-        def get(self, school):
-            return {'charts': self.client[school].stock_charts.distinct("year")}
-
-    # /stock_charts/<year>
-    class ListStockCharts(Resource):
-        def __init__(self, client):
-            self.client = client
-
-        def get(self, school, year):
-            return {'charts': 
-                    self.client[school].stock_charts.find({"year": year}).distinct("major")}
-
-    # /stock_charts/<year>/<chart>
-    class GetStockChart(Resource):
-        def __init__(self, client):
-            self.client = client
-
-        def get(self, school, year, major):
-            chart = self.client[school].stock_charts.find({"year": year, "major": major})
-            if chart:
-                new_chart = {}
-                for block in chart:
-                    bid_obj = block.pop('_id', None)
-                    bid = str(bid_obj)
-                    new_chart[bid] = {}
-
-                    if 'catalog_id' in block:
-                        if isinstance(block['catalog_id'], list):
-                            courses = []
-                            ids = block.pop('catalog_id', None)
-                            for cid in ids:
-                                course_data = self.client[school].catalog.find_one(
-                                        {"_id": cid})
-                                course_data["_id"] = str(course_data["_id"])
-                                courses.append(course_data)
-                            new_chart[bid]['course_data'] = courses
-                        else:
-                            cid = block.pop('catalog_id', None)
-                            course_data = self.client[school].catalog.find_one(
-                                    {"_id": cid})
-                            course_data["_id"] = str(course_data["_id"])
-                            new_chart[bid]['course_data'] = course_data
-                            
-
-                    new_chart[bid]['block_metadata'] = block
-
-                return new_chart 
+        if 'catalog_id' in block:
+            if isinstance(block['catalog_id'], list):
+                courses = []
+                cids = []
+                ids = block.pop('catalog_id', None)
+                for cid in ids:
+                    course_data = client[school].catalog.find_one(
+                            {"_id": cid})
+                    cid_str = str(course_data["_id"])
+                    course_data["_id"] = cid_str 
+                    courses.append(course_data)
+                    cids.append(cid_str)
+                block['catalog_id'] = cids 
+                new_chart[bid]['course_data'] = courses
             else:
-                abort(404, message=f"Either year is invalid or major does not exist") 
+                cid_obj = block.pop('catalog_id', None)
+                course_data = client[school].catalog.find_one(
+                        {"_id": cid_obj})
+                cid = str(course_data["_id"])
+                course_data["_id"] = cid
+                block['catalog_id'] = cid
+                new_chart[bid]['course_data'] = course_data
 
-    # /api/<school>/users/<user>
-    class TestUserAuth(Resource):
-        @requires_login
-        def get(self, school, user):
-            return {"message": f"User {user} at school {school} is " +
+        new_chart[bid]['block_metadata'] = block
+
+    return new_chart 
+
+# /stock_charts
+class ListStockYears(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, school):
+        return {'charts': self.client[school].stock_charts.distinct("year")}
+
+# /stock_charts/<year>
+class ListStockCharts(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, school, year):
+        return {'charts': 
+                self.client[school].stock_charts.find({"year": year}).distinct("major")}
+
+# /stock_charts/<year>/<chart>
+class GetStockChart(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, school, year, major):
+        chart = self.client[school].stock_charts.find({"year": year, "major": major})
+        if chart:
+            return dereference_chart_ids(self.client, school, chart) 
+        else:
+            abort(404, message=f"Either year is invalid or major does not exist") 
+
+# /api/<school>/users/<user>
+class TestUserAuth(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    @requires_login
+    def get(self, school, user):
+        return {"message": f"User {user} at school {school} is " +
                 "successfully authenticated for this endpoint"}
 
-    # /<user>/charts
-    class ListUserCharts(Resource):
-        @requires_login
-        def get(self, user):
-            return {'charts': [x[:x.find(".json")] 
-                for x in os.listdir(
-                    CourseManager.course_root + "users/" + user + "/charts/")]}
+# /api/<school>/users/<user>/charts
+class ListUserCharts(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    @requires_login
+    def get(self, school, user):
+        charts = client[school].user_charts.find({"user": user})
+        if charts is None:
+            abort(404, message=f"User {user} has no charts")
         
-    # /<user>/charts/<chart>
-    class ChartResource(Resource):
-        @requires_login
-        def get(self, user, chart):
-            CourseManager.ensure_loaded(user, chart)
-            return CourseManager.courses[user][chart]
+        return charts.distinct("chart_name") 
+
+# /api/<school>/users/<user>/newchart
+class NewChartResource(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    @requires_login
+    def post(self, school, user):
+        userdb = f"{school}-users" 
+        user_collection = self.client[userdb][user] 
+
+        command = request.get_json()
+        if not ('target' in command and 'destination' in command and 'year' in command):
+            abort(400, message=("Copy command malformed. Please send a request "
+                'of the form {"target": "target_stock_chart", "destination": '
+                '"destination_chart_name"}'))
+
+        target, year, destination = [command['target'], command['year'], command['destination']]
+
+        stock_chart = self.client[school].stock_charts.find({"year": year, "major": target})
+        if not stock_chart:
+            abort(404, message=("Target chart not found. "
+                "Either year is invalid or major does not exist")) 
         
-        @requires_login
-        def post(self, user, chart):
-            course_ids = []
+        new_chart = []
+        for block in stock_chart:
+            del block["major"]
+            block["chart_name"] = destination
+            new_chart.append(block)
 
-            path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json" 
-            if os.path.exists(path):
-                abort(403, message=f"Will not overwrite {chart}. Please delete existing chart first")
+        user_collection.insert_many(new_chart)
+        return {"message": "Chart copied successfully"}, 201
 
-            new_chart = request.get_json()
+# /api/<school>/users/<user>/charts/<chart>
+class ChartResource(Resource):
+    def __init__(self, client):
+        self.client = client
 
-            CourseManager.load_courses(user, chart, {'temp': new_chart}) 
+    @requires_login
+    def get(self, school, user, chart):
+        userdb = f"{school}-users" 
+        chart = self.client[userdb][user].find({"chart_name": chart})
+        if chart is None:
+            abort(404, message=f"Chart {chart} does not exist") 
 
-            with open(path, 'w') as flowfile:
-                outp_data = {
-                        'temp' : CourseManager.courses[user][chart]
-                        }
-                flowfile.write(json.dumps(outp_data, indent=4))
+        return dereference_chart_ids(self.client, school, chart) 
 
-            return new_chart, 201
-        
-        @requires_login
-        def put(self, user, chart):
-            new_course = request.get_json()
-            
-            c_id = CourseManager.last_course_ids[user][chart] + 1
-            CourseManager.last_course_ids[user][chart] += 1
-            
-            CourseManager.courses[user][chart][c_id] = new_course  
-            CourseManager.save_courses(user, chart)
+    @requires_login
+    def post(self, school, user, chart):
+        userdb = f"{school}-users" 
+        user_collection = self.client[userdb][user] 
 
-            return { c_id: new_course }, 201
-        
-        @requires_login
-        def delete(self, user, chart):
-            path = CourseManager.course_root + "users/" + user + "/charts/" + chart + ".json"
-            if user in CourseManager.courses and chart in CourseManager.courses[user]:
-                del CourseManager.courses[user][chart] 
-            os.remove(path)
-            return 200
-            
+        new_chart = response.get_json()
+        if type(new_chart) != list:
+            abort(400, message=("Please send a list of course objects "
+                "you wish to insert into this chart"))
 
-# /<user>/charts/<chart>/<id>
-    class CourseResource(Resource):
-        @requires_login
-        def get(self, user, chart, c_id):
-            CourseManager.ensure_loaded(user, chart)
-            return CourseManager.courses[user][chart][c_id]
-        
-        @requires_login
-        def put(self, user, chart, c_id):
-            CourseManager.ensure_loaded(user, chart)
-            course = request.get_json()
-            CourseManager.courses[user][chart][c_id] = course
-            CourseManager.save_courses(user, chart)
+        return new_chart, 201
 
-            return CourseManager.courses[user][chart][c_id]
-        
-        @requires_login
-        def delete(self, user, chart, c_id):
-            CourseManager.ensure_loaded(user, chart)
-            del CourseManager.courses[user][chart][c_id]
-            CourseManager.save_courses(user, chart)
-            return 200 
+    @requires_login
+    def put(self, school, user, chart):
+        userdb = f"{school}-users" 
+         
+
+        return new_course, 201
+
+    @requires_login
+    def delete(self, school, user, chart):
+        userdb = f"{school}-users" 
+        collection = self.client[school].user_charts
+        collection.deleteMany({"user": user, "chart_name": chart})
+        return 200
+
+
+# /api/<school>/users/<user>/charts/<chart>/<cid>
+class CourseResource(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    @requires_login
+    def get(self, user, chart, c_id):
+        userdb = f"{school}-users" 
+
+        return CourseManager.courses[user][chart][c_id]
+
+    @requires_login
+    def put(self, user, chart, c_id):
+        userdb = f"{school}-users" 
+
+        return CourseManager.courses[user][chart][c_id]
+
+    @requires_login
+    def delete(self, user, chart, c_id):
+        userdb = f"{school}-users" 
+
+        return 200 
