@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from course_manager import CourseManager
+import course_manager
 # from login_manager import LoginManager, login_manager, db
 import coursedb_manager
 from usage_resource import UsageResource
@@ -58,24 +58,44 @@ api.add_resource(AuthorizeResource,   '/api/<string:school>/authorize')
 # How to use my lovely program
 api.add_resource(UsageResource,   '/api')
 
-api.add_resource(CourseManager.ListStockYears,  
+api.add_resource(course_manager.ListStockYears,  
     '/api/<string:school>/stock_charts',
     resource_class_kwargs={'client': mongo}
     )
-api.add_resource(CourseManager.ListStockCharts, 
+api.add_resource(course_manager.ListStockCharts, 
     '/api/<string:school>/stock_charts/<string:year>',
     resource_class_kwargs={'client': mongo}
     )
 
-api.add_resource(CourseManager.GetStockChart,   
+api.add_resource(course_manager.GetStockChart,   
     '/api/<string:school>/stock_charts/<string:year>/<string:major>',
     resource_class_kwargs={'client': mongo}
     )
 
-api.add_resource(CourseManager.TestUserAuth,    '/api/<string:school>/users/<string:user>')
-api.add_resource(CourseManager.ListUserCharts,  '/api/<string:user>/charts')
-api.add_resource(CourseManager.ChartResource,   '/api/<string:user>/charts/<string:chart>')
-api.add_resource(CourseManager.CourseResource,  '/api/<string:user>/charts/<string:chart>/<int:c_id>')
+api.add_resource(course_manager.TestUserAuth,
+    '/api/<string:school>/users/<string:user>',
+    resource_class_kwargs={'client': mongo}
+    )
+
+api.add_resource(course_manager.NewChartResource,
+    '/api/<string:school>/users/<string:user>/newchart',
+    resource_class_kwargs={'client': mongo}
+    )
+
+api.add_resource(course_manager.ListUserCharts,
+    '/api/<string:user>/charts',
+    resource_class_kwargs={'client': mongo}
+    )
+
+api.add_resource(course_manager.ChartResource,
+    '/api/<string:user>/charts/<string:chart>',
+    resource_class_kwargs={'client': mongo}
+    )
+
+api.add_resource(course_manager.CourseResource,
+    '/api/<string:user>/charts/<string:chart>/<int:c_id>',
+    resource_class_kwargs={'client': mongo}
+    )
 
 @app.before_first_request
 def create_database():
