@@ -132,6 +132,7 @@ class NewChartResource(Resource):
         new_chart = []
         for block in stock_chart:
             del block["major"]
+            del block["_id"]
             block["chart_name"] = destination
             new_chart.append(block)
 
