@@ -100,11 +100,12 @@ class ListUserCharts(Resource):
 
     @requires_login
     def get(self, school, user):
-        charts = client[school].user_charts.find({"user": user})
+        userdb = f"{school}-users" 
+        charts = self.client[userdb][user].distinct("chart_name")
         if charts is None:
             abort(404, message=f"User {user} has no charts")
         
-        return charts.distinct("chart_name") 
+        return charts
 
 # /api/<school>/users/<user>/import
 class NewChartResource(Resource):
