@@ -2,17 +2,22 @@
 Each institution will have its own database. Note a '#' indicates that one should
 refer to the corresponding section in this documentation.
 
-school
-    -> catalog
+school-catalog
+    -> department
         -> #courses
-    -> stock_charts
-        -> #charts
+    -> department
+        -> #courses
+    -> etc...
 
-school-users
-    -> #user
-        -> #charts
-    -> #user-config
-        -> #configs
+school-stockcharts
+    -> major-chart
+        -> #courses
+    -> etc...
+
+school-user
+    -> config
+    -> user-chart 
+        -> #courses
 
 # Courses
 A course within the stucture contains all of the necessary data to fully describe

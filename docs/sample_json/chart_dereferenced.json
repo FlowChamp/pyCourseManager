@@ -1,0 +1,45 @@
+{ 
+    "599a6ad3098ef07b2eda5804": {
+        "course_data": {
+            "_id": "5998de37098ef00d3fe3037c",
+            "title": " General Physics IA",
+            "units": 4,
+            "prereqs": "MATH 141 with grade C- or better and MATH 142 or MATH 182 (or concurrent enrollment). Recommended: High School Physics.",
+            "parsed_prereqs": {
+                "or": [
+                    "MATH 141 with grade C-",
+                    {
+                        "and": [
+                            "better",
+                            "MATH 142"
+                        ]
+                    },
+                    "MATH 182 (or concurrent enrollment)"
+                ],
+                "recommended": {
+                    "single": "High School Physics"
+                }
+            },
+            "description": "Fundamental principles of mechanics.  Vectors, particle kinematics.  Equilibrium of a rigid body.  Work and energy, linear momentum, rotational kinematics and dynamics.  Primarily for engineering and science students.  Not open to students with credit in PHYS 131.  4 lectures.  Crosslisted as HNRS 134/PHYS 141.  Fulfills GE B3.",
+            "department": "PHYS",
+            "course_number": 141
+        },
+        "block_metadata": {
+            "ge_type": [
+                null
+            ],
+            "course_type": "Support",
+            "time": [
+                2,
+                "Fall"
+            ],
+            "notes": "Or CHEM 124",
+            "flags": [],
+            "year": "15-17",
+            "major": "Computer_Science",
+            "_id": "599a6ad3098ef07b2eda5804",
+            "catalog_id": "5998de37098ef00d3fe3037c"
+        }
+    }
+}
+

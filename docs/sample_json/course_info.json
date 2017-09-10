@@ -1,0 +1,36 @@
+{
+    _id: "5998de37098ef00d3fe2fb70",
+    "title": " Systems Programming",
+    "units": 4,
+    "prereqs": "CSC/CPE 102 and CSC/CPE 103 with a grade of C- or better or consent of instructor, or CSC/CPE 202 and CSC/CPE 203 with a grade of C- or better or consent of instructor; and CSC 225 or CPE/EE 229 or CPE/EE 233.",
+    parsed_prereqs: {
+        "and": [
+            {
+                "or": [
+                    {
+                        "and": [
+                            "CSC/CPE 102",
+                            "CSC/CPE 103"
+                        ]
+                    },
+                    {
+                        "and": [
+                            "CSC/CPE 202",
+                            "CSC/CPE 203"
+                        ]
+                    }
+                ]
+            },
+            {
+                "or": [
+                    "CSC 225",
+                    "CPE/EE 229",
+                    "CPE/EE 233"
+                ]
+            }
+        ]
+    },
+    "description": "C programming language from a system programming perspective. Standard C language including operators, I/O functions, and data types in the context of system functions. Unix commands, shell scripting, file system, editors. 3 lectures, 1 laboratory. Crosslisted as CPE/CSC 357.",
+    "department": "CPE",
+    course_number: 357
+}
