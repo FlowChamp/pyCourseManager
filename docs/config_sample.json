@@ -1,0 +1,9 @@
+{
+    "username": "steelcowboy",
+    "start_year": 2015,
+    "active_chart": "cscbsu",
+    "charts": {
+        "cscbsu": "Computer Science",
+        "aero15-17": "Aerospace Engineering"
+    }
+}
