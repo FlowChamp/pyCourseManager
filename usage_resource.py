@@ -6,13 +6,13 @@ class UsageResource(Resource):
             "/api/<string:school>/authorize": {
                 "GET": {
                     "Requires": "HTTP Basic Authentication to authenticate the new user",
-                    "Returns": "An API Key for use by non-web-browser clients which is valid for 30 minutes"
+                    "Returns": "The users's saved configuration"
                 }
             },
 
-            "/api/logout": {
+            "/api/<string:school>/users/<string:user>/logout": {
                 "POST": {
-                    "Requires": "A browser cookie or an API key for the user session"
+                    "Requires": "A cookie for the user session"
                 }
             },
 
@@ -40,13 +40,20 @@ class UsageResource(Resource):
             "/api/<string:school>/users/<string:user>/import": {
                 "POST": { 
                     "Requires": "Browser cookie or API key from valid login",
-                    "Accepts": ("A JSON description of the chart the user wishes "
-                        "to import in the format {'target': target_stock_chart, "
-                        "'year': chart_year, 'destination': user_specified_name}")
+                    "Accepts": """A JSON description of the chart the user wishes 
+                        to import in the format {'target': target_stock_chart, 
+                        'year': chart_year, 'destination': user_specified_name}"""
                 }
             },
 
-            "/api/<string:user>/charts": {
+            "/api/<string:school>/users/<string:user>": {
+                "GET": { 
+                    "Requires": "A valid login cookie",
+                    "Returns": "The login status of the specified user"
+                }
+            },
+            
+            "/api/<string:school>/users/<string:user>/charts": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "A listing of all charts available for the user"
@@ -54,7 +61,7 @@ class UsageResource(Resource):
             },
 
 
-            "/api/<string:user>/charts/<string:chart>": {
+            "/api/<string:school>/users/<string:user>/charts/<string:chart>": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "The user's flowchart"
@@ -78,7 +85,7 @@ class UsageResource(Resource):
                     }
                 },
 
-            "/api/<string:user>/charts/<string:chart>/<int:id>": {
+            "/api/<string:school>/users/<string:user>/charts/<string:chart>/<string:id>": {
                 "GET": {
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "The course of id <id>"
@@ -95,18 +102,18 @@ class UsageResource(Resource):
                     }
                 },
 
-            "/api/courses": {
+            "/api/<string:school>/courses": {
                 "GET": {
                     "Returns": "A list of available departments"
                     }
                 },
-            "/api/courses/<string:dept>": {
+            "/api/<string:school>/courses/<string:dept>": {
                 "GET": {
                     "Returns": "A list of all courses within a given department"
                     }
                 },
 
-            "/api/courses/<string:dept>/<int:num>": {
+            "/api/<string:school>/courses/<string:dept>/<int:num>": {
                 "GET": {
                     "Returns": "The course associated with the number in the department"
                     }
