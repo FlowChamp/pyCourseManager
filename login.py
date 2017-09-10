@@ -114,12 +114,12 @@ class AuthorizeResource(Resource):
 
 class LogoutResource(Resource):
     @requires_login
-    def get(self, school, user):
+    def post(self, school, user):
         # requires_login ensures that there will be a user before we get here
         username = f"{school}-{user}"
         user = User.query.filter_by(username=username).first()
         db.session.delete(user)
         db.session.commit()
 
-        return {"message": f"User {username} successfully logged out"}
+        return {"message": f"User {user} successfully logged out"}
 

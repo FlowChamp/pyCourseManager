@@ -91,7 +91,7 @@ class TestUserAuth(Resource):
     @requires_login
     def get(self, school, user):
         return {"message": f"User {user} at school {school} is " +
-                "successfully authenticated for this endpoint"}
+                "successfully authenticated for this endpoint"}, 418
 
 # /api/<school>/users/<user>/charts
 class ListUserCharts(Resource):
@@ -156,6 +156,7 @@ class ChartResource(Resource):
 
     @requires_login
     def post(self, school, user, chart):
+        abort(501)
         userdb = f"{school}-users" 
         user_collection = self.client[userdb][user] 
 
@@ -168,6 +169,7 @@ class ChartResource(Resource):
 
     @requires_login
     def put(self, school, user, chart):
+        abort(501)
         userdb = f"{school}-users" 
          
 
@@ -175,6 +177,7 @@ class ChartResource(Resource):
 
     @requires_login
     def delete(self, school, user, chart):
+        abort(501)
         userdb = f"{school}-users" 
         collection = self.client[school].user_charts
         collection.deleteMany({"user": user, "chart_name": chart})
@@ -188,18 +191,21 @@ class CourseResource(Resource):
 
     @requires_login
     def get(self, user, chart, c_id):
+        abort(501)
         userdb = f"{school}-users" 
 
         return CourseManager.courses[user][chart][c_id]
 
     @requires_login
     def put(self, user, chart, c_id):
+        abort(501)
         userdb = f"{school}-users" 
 
         return CourseManager.courses[user][chart][c_id]
 
     @requires_login
     def delete(self, user, chart, c_id):
+        abort(501)
         userdb = f"{school}-users" 
 
         return 200 
