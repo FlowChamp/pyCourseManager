@@ -16,22 +16,26 @@ from bson import ObjectId
 
 def check_request(func):
     def inner(self, school, dept=None, num=None):
+        """Since in looking for the existence of certain resources this does
+        the query already, arg stores the result of that query to pass to the
+        function to minimize work done twice"""
         arg = None
-        
-        if school not in self.client.database_names():
-            abort(404, message=f"No database exists for school {school}")
+        db_name = f"{school}-catalog"
+
+        if db_name not in self.client.database_names():
+            abort(404, message=f"No courses database exists for school {school}")
         else:
             arg = school
 
         if dept:
-            depts = self.client[school].catalog.distinct("department")
+            depts = self.client[db_name].collection_names()
             if dept not in depts:
                 abort(404, message=f"Department {dept} does not exist")
             else:
-                arg = self.client[school].catalog.find({"department": dept}) 
+                arg = self.client[db_name][dept] 
 
         if num:
-            query = self.client[school].catalog.find({"department": dept, "course_number": num})
+            query = self.client[db_name][dept].find({"course_number": num})
             if query.count() == 0:
                 abort(404, message=f"Department {dept} does not contain a course numbered {num}")
             elif query.count() != 1:
@@ -42,13 +46,15 @@ def check_request(func):
         return func(self, arg)
     return inner
 
+# The check request wrapper handles most of the arguments passed to these functions,
+# so the "actual" function only need take one arg (which is given by the wrapper)
 class DepartmentResource(Resource):
     def __init__(self, client):
         self.client = client
 
     @check_request
     def get(self, school):
-        return {'departments': sorted(self.client[school].catalog.distinct("department"))}
+        return {'departments': sorted(self.client[f"{school}-catalog"].collection_names())}
 
 class DepartmentListingResource(Resource):
     def __init__(self, client):
