@@ -10,8 +10,8 @@ def get_json_data(path):
 
 def main():
     client = MongoClient()
-    db = client.cpslo
-    collection = db.catalog
+    db_name = "cpslo-catalog"
+    db = client[db_name]
 
     json_files = glob.glob(MAJOR_DIR + "/*.json")
     json_data = [get_json_data(path) for path in json_files]
@@ -27,11 +27,10 @@ def main():
                 dept = k.split()[0]
                 found_catalog = True
 
-            v["department"] = dept
             v["course_number"] = int(k[-3:])
             course_data.append(v)
 
-        collection.insert_many(course_data)
+        db[dept].insert_many(course_data)
 
 
 if __name__ == "__main__":
