@@ -27,12 +27,9 @@ def requires_login(func):
             abort(403, message="Api key expired, please reauthenticate")
 
         token = request.cookies.get('friday-login-token')
-        api_key = request.headers.get('x-api-key')
 
-        if token is not None:
+        if token:
             authorized = user.check_token(token)
-        elif api_key:
-            authorized = user.check_token(api_key)
         else:
             abort(400, message="No authorization token found. Is the user logged in?")
 
@@ -67,7 +64,6 @@ class User(db.Model):
         return f"{self.username}: {self.token}"
     def __repr__(self):
         return '<User %r>' % self.username
-
 
 class AuthorizeResource(Resource):
     """Send a GET request to the API to authenticate the user. If the user 
@@ -116,4 +112,14 @@ class AuthorizeResource(Resource):
     def post(self, school):
         self.get(school)
 
+class LogoutResource(Resource):
+    @requires_login
+    def get(self, school, user):
+        # requires_login ensures that there will be a user before we get here
+        username = f"{school}-{user}"
+        user = User.query.filter_by(username=username).first()
+        db.session.delete(user)
+        db.session.commit()
+
+        return {"message": f"User {username} successfully logged out"}
 

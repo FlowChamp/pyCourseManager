@@ -5,7 +5,7 @@ import course_manager
 import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
-from login import AuthorizeResource, db
+from login import AuthorizeResource, LogoutResource, db
 
 from flask import Flask
 from flask_restful import Api
@@ -53,7 +53,7 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
 
 # Login resources
 api.add_resource(AuthorizeResource,   '/api/<string:school>/authorize')
-# api.add_resource(LoginManager.LogoutResource,  '/api/logout')
+api.add_resource(LogoutResource,  '/api/<string:school>/users/<string:user>/logout')
 
 # How to use my lovely program
 api.add_resource(UsageResource,   '/api')
