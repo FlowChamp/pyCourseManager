@@ -22,19 +22,22 @@ def dereference_chart_ids(client, school, chart):
     """
     new_chart = {}
     for block in chart:
+        db_name = f"{school}-catalog"
         bid_obj = block.pop('_id', None)
         bid = str(bid_obj)
         block['_id'] = bid
         new_chart[bid] = {}
-
+        
         if 'catalog_id' in block:
+            dept = block["department"]
+
             if isinstance(block['catalog_id'], list):
                 courses = []
                 cids = []
                 ids = block.pop('catalog_id', None)
                 for cid in ids:
-                    course_data = client[school].catalog.find_one(
-                            {"_id": cid})
+                    course_data = client[db_name][dept].find_one(cid)
+                    # print(f"Looking for id {cid} in database {db_name}, collection {dept}")
                     cid_str = str(course_data["_id"])
                     course_data["_id"] = cid_str 
                     courses.append(course_data)
@@ -43,8 +46,8 @@ def dereference_chart_ids(client, school, chart):
                 new_chart[bid]['course_data'] = courses
             else:
                 cid_obj = block.pop('catalog_id', None)
-                course_data = client[school].catalog.find_one(
-                        {"_id": cid_obj})
+                # print(f"Really looking for id {cid_obj} in database {db_name}, collection {dept}")
+                course_data = client[db_name][dept].find_one(cid_obj)
                 cid = str(course_data["_id"])
                 course_data["_id"] = cid
                 block['catalog_id'] = cid
@@ -60,7 +63,16 @@ class ListStockYears(Resource):
         self.client = client
 
     def get(self, school):
-        return {'charts': self.client[school].stock_charts.distinct("year")}
+        years = []
+        db_start = f"{school}-stockcharts"
+        for db_name in self.client.database_names():
+            if db_name.startswith(db_start):
+                years.append(db_name.split('-')[2])
+
+        if not len(years):
+            abort(404, message=f"There are no stock flowcharts for school {school}")
+
+        return {'charts': years}
 
 # /stock_charts/<year>
 class ListStockCharts(Resource):
@@ -68,8 +80,11 @@ class ListStockCharts(Resource):
         self.client = client
 
     def get(self, school, year):
-        return {'charts': 
-                self.client[school].stock_charts.find({"year": year}).distinct("major")}
+        db_name = f"{school}-stockcharts_{year}"
+        if db_name not in self.client.database_names():
+            abort(404, message=f"School {school} does not contain any stock charts for the year {year}")
+
+        return {'charts': sorted(self.client[db_name].collection_names())}
 
 # /stock_charts/<year>/<chart>
 class GetStockChart(Resource):
@@ -77,7 +92,9 @@ class GetStockChart(Resource):
         self.client = client
 
     def get(self, school, year, major):
-        chart = self.client[school].stock_charts.find({"year": year, "major": major})
+        db_name = f"{school}-stockcharts_{year}"
+        print(self.client[db_name].collection_names())
+        chart = self.client[db_name][major].find()
         if chart:
             return dereference_chart_ids(self.client, school, chart) 
         else:

@@ -9,13 +9,17 @@ STOCK_DIR = "/srv/pyflowchart/stock_charts/15-17"
 
 def main():
     client = MongoClient()
-    db = client.cpslo
-    catalog_coll = db.catalog 
-    stock_coll = db.stock_charts 
+    db = client["cpslo-stockcharts_15-17"]
+    catalog_db = client["cpslo-catalog"]
 
     json_files = glob.glob(STOCK_DIR + "/*.json")
 
+    # Each file is its own collection
     for fn in json_files:
+        chart_name = os.path.basename(fn).strip(".json")
+
+        collection = db[chart_name]
+
         chart_data = get_json_data(fn)
         courses = []
         
@@ -32,14 +36,15 @@ def main():
                 course_data["type"] = "option"
                 ids = []
                 for idf in idfs:
-                    obj = catalog_coll.find_one({"department": dept, "course_number": int(idf)})
+                    obj = catalog_db[dept].find_one({"course_number": int(idf)})
                     if not obj:
                         print("No object found")
                         continue
                     else:
                         ids.append(obj["_id"])
 
-                course_data["catalog_id"] = ids 
+                course_data["catalog_id"] = ids
+                course_data["department"] = dept
 
             elif " or " in catalog_id:
                 if len(catalog_id.split(" ")) == 4:
@@ -51,7 +56,7 @@ def main():
                     ids = []
 
                     for idf in [num1, num2]:
-                        obj = catalog_coll.find_one({"department": dept, "course_number": int(idf)})
+                        obj = catalog_db[dept].find_one({"course_number": int(idf)})
                         if not obj:
                             print("No object found")
                             continue
@@ -59,9 +64,11 @@ def main():
                             ids.append(obj["_id"])
 
                     course_data["catalog_id"] = ids
+                    course_data["department"] = dept
 
                 # Must be D1 N1 or D2 N2
                 else:
+                    depts = []
                     ids = []
                     d1n1, d2n2 = catalog_id.split(" or ")
                     d1, n1 = d1n1.split(" ")
@@ -69,14 +76,16 @@ def main():
                     for i in range(2):
                         dept = [d1, d2][i]
                         idf = [n1, n2][i]
-                        obj = catalog_coll.find_one({"department": dept, "course_number": int(idf)})
+                        obj = catalog_db[dept].find_one({"course_number": int(idf)})
                         if not obj:
                             print("No object found")
                             continue
                         else:
                             ids.append(obj["_id"])
+                        depts.append(dept)
 
                     course_data["catalog_id"] = ids 
+                    course_data["department"] = depts
 
             elif "/" in catalog_id:
                 dept, nums = catalog_id.split(' ')
@@ -86,7 +95,7 @@ def main():
                 ids = []
 
                 for idf in [num1, num2]:
-                    obj = catalog_coll.find_one({"department": dept, "course_number": int(idf)})
+                    obj = catalog_db[dept].find_one({"course_number": int(idf)})
                     if not obj:
                         print("No object found")
                         continue
@@ -94,6 +103,7 @@ def main():
                         ids.append(obj["_id"])
 
                 course_data["catalog_id"] = ids 
+                course_data["department"] = dept
 
             elif catalog_id == "" or catalog_id.isspace():
                 course_data["elective_title"] = course_data["title"]
@@ -104,30 +114,22 @@ def main():
                 course = course_data["catalog"].split(" ")
                 if len(course) == 2:
                     dept, number = course
-                    obj = catalog_coll.find_one({"department": dept, "course_number": int(number)})
+                    obj = catalog_db[dept].find_one({"course_number": int(number)})
                     if not obj:
                         continue
-                    else:
-                        course_data["catalog_id"] = obj['_id']
+                    course_data["catalog_id"] = obj['_id']
+                    course_data["department"] = dept
                 else:
-                    continue
+                    course_data["type"] = "general_ed"
                 
             for key in ["title", "prereqs", "credits", "catalog"]:
                 del course_data[key]
 
             course_data["flags"] = []
-            course_data["year"] = "15-17"
-            # course_data["school"] = "cpslo"
-            
-            chart_name = fn 
-            chart_name = chart_name.split("/")[-1]
-            chart_name = chart_name.strip(".json")
-            
-            course_data["major"] = chart_name
 
             courses.append(course_data)
 
-        stock_coll.insert_many(courses) 
+        collection.insert_many(courses) 
 
 if __name__ == "__main__":
     main()
