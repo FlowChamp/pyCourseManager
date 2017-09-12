@@ -1,17 +1,14 @@
 {
-    "_id" : "599a6ad3098ef07b2eda5775",
-    "course_type" : "Major",
-    "ge_type" : [
-        null
-    ],
-    "time" : [
-        1,
+    "_id": "59b75bd4098ef05173704ab3",
+    "catalog_id": "59b5b098098ef037826e5efb",
+    "course_type": "Major",
+    "department": "AERO",
+    "flags": [],
+    "ge_type": [null],
+    "notes": null,
+    "time": [
+        1, 
         "Fall"
-    ],
-    "notes" : null,
-    "catalog_id" : "5998de37098ef00d3fe2f740",
-    "flags" : [ ],
-    "year" : "15-17",
-    "major" : "Aerospace_Engineering"
+    ]
 }
 

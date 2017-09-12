@@ -9,15 +9,16 @@ school-catalog
         -> #courses
     -> etc...
 
-school-stockcharts
+school-stockcharts_year
     -> major-chart
         -> #courses
-    -> etc...
+    -> #charts 
 
 school-user
     -> config
     -> user-chart 
         -> #courses
+    -> #charts
 
 # Courses
 A course within the stucture contains all of the necessary data to fully describe
