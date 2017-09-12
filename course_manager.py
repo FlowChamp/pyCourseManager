@@ -117,9 +117,9 @@ class ListUserCharts(Resource):
 
     @requires_login
     def get(self, school, user):
-        userdb = f"{school}-users" 
-        charts = self.client[userdb][user].distinct("chart_name")
-        if charts is None:
+        userdb = f"{school}-{user}" 
+        charts = self.client[userdb].collection_names()
+        if len(charts) == 0: 
             abort(404, message=f"User {user} has no charts")
         
         return charts
@@ -131,8 +131,7 @@ class NewChartResource(Resource):
 
     @requires_login
     def post(self, school, user):
-        userdb = f"{school}-users" 
-        user_collection = self.client[userdb][user] 
+        userdb = f"{school}-{user}" 
 
         command = request.get_json()
         if not ('target' in command and 'destination' in command and 'year' in command):
@@ -141,17 +140,16 @@ class NewChartResource(Resource):
                 '"destination_chart_name"}'))
 
         target, year, destination = [command['target'], command['year'], command['destination']]
+        user_collection = self.client[userdb][destination]
 
-        stock_chart = self.client[school].stock_charts.find({"year": year, "major": target})
-        if not stock_chart:
+        stock_chart = self.client[f"{school}-stockcharts-{year}"][target].find()
+        if not len(stock_chart):
             abort(404, message=("Target chart not found. "
                 "Either year is invalid or major does not exist")) 
         
         new_chart = []
         for block in stock_chart:
-            del block["major"]
             del block["_id"]
-            block["chart_name"] = destination
             new_chart.append(block)
 
         user_collection.insert_many(new_chart)
@@ -164,8 +162,8 @@ class ChartResource(Resource):
 
     @requires_login
     def get(self, school, user, chart):
-        userdb = f"{school}-users" 
-        chart = self.client[userdb][user].find({"chart_name": chart})
+        userdb = f"{school}-{user}" 
+        chart = self.client[userdb][chart].find()
         if chart is None:
             abort(404, message=f"Chart {chart} does not exist") 
 
