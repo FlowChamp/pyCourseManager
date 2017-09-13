@@ -142,8 +142,8 @@ class NewChartResource(Resource):
         target, year, destination = [command['target'], command['year'], command['destination']]
         user_collection = self.client[userdb][destination]
 
-        stock_chart = self.client[f"{school}-stockcharts_{year}"][target].find()
-        if not len(list(stock_chart)):
+        stock_chart = list(self.client[f"{school}-stockcharts_{year}"][target].find())
+        if not len(stock_chart):
             abort(404, message=("Target chart not found. "
                 "Either year is invalid or major does not exist")) 
         
