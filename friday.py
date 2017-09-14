@@ -77,6 +77,11 @@ api.add_resource(course_manager.TestUserAuth,
     resource_class_kwargs={'client': mongo}
     )
 
+api.add_resource(course_manager.UserConfig,
+    '/api/<string:school>/users/<string:user>/config',
+    resource_class_kwargs={'client': mongo}
+    )
+
 api.add_resource(course_manager.NewChartResource,
     '/api/<string:school>/users/<string:user>/import',
     resource_class_kwargs={'client': mongo}

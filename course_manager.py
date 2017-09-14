@@ -15,9 +15,9 @@ from login import User, requires_login
 
 def check_config_init(client, school, user):
     username = f"{school}-{user}"
-    if username not in client.database_names():
-        if client[username].config.count():
-            abort(500, message=f"Uh oh, somehow there's another document in the config")
+    if username in client.database_names():
+        if client[username].config.count() == 1:
+            return
 
         config = {
             "username": username,
@@ -132,7 +132,9 @@ class UserConfig(Resource):
     def get(self, school, user):
         check_config_init(self.client, school, user)
         userdb = f"{school}-{user}" 
-        return self.client[userdb].config.find_one()
+        config = self.client[userdb].config.find_one()
+        del config['_id']
+        return config
 
     @requires_login
     def post(self, school, user):
@@ -152,14 +154,16 @@ class ListUserCharts(Resource):
 
     @requires_login
     def get(self, school, user):
+        check_config_init(self.client, school, user)
+
         userdb = f"{school}-{user}" 
         # There's only one document in the config collection
-        charts = self.client[userdb].config.find_one()['user_charts']
+        charts = self.client[userdb].config.find_one()['charts']
 
         if len(charts) == 0: 
             abort(404, message=f"User {user} has no charts")
         
-        return charts
+        return list(charts)
 
 # /api/<school>/users/<user>/import
 class NewChartResource(Resource):
@@ -190,7 +194,7 @@ class NewChartResource(Resource):
             del block["_id"]
             new_chart.append(block)
 
-        config['user_charts'].append(destination)
+        config['charts'][destination] = target
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
         user_collection.insert_many(new_chart)
