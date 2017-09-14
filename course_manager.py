@@ -13,6 +13,20 @@ from flask_restful import Resource, abort
 # from login_manager import User, requires_login
 from login import User, requires_login
 
+def check_config_init(client, school, user):
+    username = f"{school}-{user}"
+    if username not in client.database_names():
+        if client[username].config.count():
+            abort(500, message=f"Uh oh, somehow there's another document in the config")
+
+        config = {
+            "username": username,
+            "start_year": 0,
+            "active_chart": "",
+            "charts": {}
+        }
+        client[username].config.insert_one(config)
+
 def dereference_chart_ids(client, school, chart):
     """
     MongoClient string dict -> dict
@@ -110,6 +124,27 @@ class TestUserAuth(Resource):
         return {"message": f"User {user} at school {school} is " +
                 "successfully authenticated for this endpoint"}, 418
 
+class UserConfig(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    @requires_login
+    def get(self, school, user):
+        check_config_init(self.client, school, user)
+        userdb = f"{school}-{user}" 
+        return self.client[userdb].config.find_one()
+
+    @requires_login
+    def post(self, school, user):
+        new_config = request.get_json()
+        
+        check_config_init(self.client, school, user)
+        userdb = f"{school}-{user}"
+
+        conf_id = self.client[userdb].config.find_one()['_id']
+        self.client[userdb].config.update_one({'_id': conf_id}, {"$set": new_config}, upsert=True)
+        return {"message": "Config successfully updated"}, 201
+
 # /api/<school>/users/<user>/charts
 class ListUserCharts(Resource):
     def __init__(self, client):
@@ -118,7 +153,9 @@ class ListUserCharts(Resource):
     @requires_login
     def get(self, school, user):
         userdb = f"{school}-{user}" 
-        charts = self.client[userdb].collection_names()
+        # There's only one document in the config collection
+        charts = self.client[userdb].config.find_one()['user_charts']
+
         if len(charts) == 0: 
             abort(404, message=f"User {user} has no charts")
         
@@ -132,6 +169,7 @@ class NewChartResource(Resource):
     @requires_login
     def post(self, school, user):
         userdb = f"{school}-{user}" 
+        config = self.client[userdb].config.find_one()
 
         command = request.get_json()
         if not ('target' in command and 'destination' in command and 'year' in command):
@@ -151,6 +189,9 @@ class NewChartResource(Resource):
         for block in stock_chart:
             del block["_id"]
             new_chart.append(block)
+
+        config['user_charts'].append(destination)
+        self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
         user_collection.insert_many(new_chart)
         return {"message": "Chart copied successfully"}, 201
