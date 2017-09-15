@@ -52,7 +52,11 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
     )
 
 # Login resources
-api.add_resource(AuthorizeResource,   '/api/<string:school>/authorize')
+api.add_resource(AuthorizeResource,
+    '/api/<string:school>/authorize',
+    resource_class_kwargs={'client': mongo}
+    )
+
 api.add_resource(LogoutResource,  '/api/<string:school>/users/<string:user>/logout')
 
 # How to use my lovely program

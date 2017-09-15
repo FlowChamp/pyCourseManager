@@ -13,20 +13,6 @@ from flask_restful import Resource, abort
 # from login_manager import User, requires_login
 from login import User, requires_login
 
-def check_config_init(client, school, user):
-    username = f"{school}-{user}"
-    if username in client.database_names():
-        if client[username].config.count() == 1:
-            return
-
-        config = {
-            "username": username,
-            "start_year": 0,
-            "active_chart": "",
-            "charts": {}
-        }
-        client[username].config.insert_one(config)
-
 def dereference_chart_ids(client, school, chart):
     """
     MongoClient string dict -> dict
@@ -130,7 +116,7 @@ class UserConfig(Resource):
 
     @requires_login
     def get(self, school, user):
-        check_config_init(self.client, school, user)
+        # check_config_init(self.client, school, user)
         userdb = f"{school}-{user}" 
         config = self.client[userdb].config.find_one()
         del config['_id']
@@ -154,7 +140,7 @@ class ListUserCharts(Resource):
 
     @requires_login
     def get(self, school, user):
-        check_config_init(self.client, school, user)
+        # check_config_init(self.client, school, user)
 
         userdb = f"{school}-{user}" 
         # There's only one document in the config collection

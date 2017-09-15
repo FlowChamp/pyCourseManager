@@ -11,6 +11,19 @@ import lxml.html
 
 db = SQLAlchemy()
 
+def check_config_init(client, username):
+    if username in client.database_names():
+        if client[username].config.count() == 1:
+            return
+
+        config = {
+            "username": username,
+            "start_year": 0,
+            "active_chart": "",
+            "charts": {}
+        }
+        client[username].config.insert_one(config)
+
 def requires_login(func):
     def try_token(*args, **kwargs):
         authorized = False
@@ -66,6 +79,9 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 class AuthorizeResource(Resource):
+    def __init__(self, client):
+        self.client = client
+
     """Send a GET request to the API to authenticate the user. If the user 
     authentication succeeds, give the client a grant token"""
     def get(self, school):
@@ -102,10 +118,14 @@ class AuthorizeResource(Resource):
 
             db.session.commit()
             
+            check_config_init(self.client, username) 
+            config = self.client[username].config.find_one()
+            del config['_id']
+            
             utc_time = datetime.utcnow() + timedelta(minutes=30)
             date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-            return {"token": token}, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
+            return config, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
         else:
             abort(401, message=f"Password incorrect for {username}")
 
