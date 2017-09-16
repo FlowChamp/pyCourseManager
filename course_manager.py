@@ -125,6 +125,9 @@ class UserConfig(Resource):
     @requires_login
     def post(self, school, user):
         new_config = request.get_json()
+        if not new_config:
+            abort(400, message="No config data received")
+
         userdb = f"{school}-{user}"
 
         conf_id = self.client[userdb].config.find_one()['_id']
