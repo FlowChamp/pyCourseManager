@@ -59,13 +59,16 @@ class User(db.Model):
     token = db.Column(db.String(80))
     token_expiration = db.Column(db.DateTime())
 
-    def __init__(self, username, token):
+    def __init__(self, username, token, remember=None):
         self.username = username
-        self.set_token(token)
+        self.set_token(token, remember)
 
-    def set_token(self, token):
+    def set_token(self, token, remember=None):
         self.token = generate_password_hash(token)
-        self.token_expiration = datetime.now() + timedelta(minutes=30)
+        if remember:
+            self.token_expiration = datetime.now() + timedelta(days=365)
+        else:
+            self.token_expiration = datetime.now() + timedelta(minutes=30)
 
     def check_token(self, tk):
         return check_password_hash(self.token, tk) 
@@ -85,6 +88,7 @@ class AuthorizeResource(Resource):
     """Send a GET request to the API to authenticate the user. If the user 
     authentication succeeds, give the client a grant token"""
     def get(self, school):
+        args = request.get_json()
         username = request.authorization.username
         password = request.authorization.password
 
@@ -108,12 +112,16 @@ class AuthorizeResource(Resource):
             token = hashlib.sha256(str.encode(cookie)).hexdigest()
 
             username = f"{school}-{username}"
+            if args:
+                rem = True if args.get("remember") else False
+            else:
+                rem = False
 
             tmp_user = User.query.filter_by(username=username).first()
             if tmp_user is not None:
-                tmp_user.set_token(token)
+                tmp_user.set_token(token, remember=rem)
             else: 
-                user = User(username, token)
+                user = User(username, token, remember=rem)
                 db.session.add(user)
 
             db.session.commit()
@@ -122,7 +130,8 @@ class AuthorizeResource(Resource):
             config = self.client[username].config.find_one()
             del config['_id']
             
-            utc_time = datetime.utcnow() + timedelta(minutes=30)
+            utc_time = datetime.utcnow() 
+            utc_time += timedelta(days=365) if rem else timedelta(minutes=30)
             date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
             return config, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
@@ -130,7 +139,7 @@ class AuthorizeResource(Resource):
             abort(401, message=f"Password incorrect for {username}")
 
     def post(self, school):
-        self.get(school)
+        return self.get(school)
 
 class LogoutResource(Resource):
     @requires_login
