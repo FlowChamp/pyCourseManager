@@ -7,6 +7,13 @@ class UsageResource(Resource):
                 "GET": {
                     "Requires": "HTTP Basic Authentication to authenticate the new user",
                     "Returns": "The users's saved configuration"
+                },
+
+                "POST": {
+                    "Requires": "HTTP Basic Authentication to authenticate the new user",
+                    "Description": "Authorize the user, and optionally be remembered for a year",
+                    "Accepts" : 'Any object with a "remember" key (the value is arbitrary)',
+                    "Returns": "The users's saved configuration"
                 }
             },
 
@@ -53,6 +60,19 @@ class UsageResource(Resource):
                 }
             },
             
+            "/api/<string:school>/users/<string:user>/config": {
+                "GET": { 
+                    "Requires": "Cookie from valid login",
+                    "Returns": "The user's saved config"
+                },
+                "POST": {
+                    "Requires": "Cookie from valid login",
+                    "Description": "Replace the config in the database with the sent config",
+                    "Accepts" : "The users's new config",
+                    "Returns": "A success message",
+                }
+            },
+
             "/api/<string:school>/users/<string:user>/charts": {
                 "GET": { 
                     "Requires": "Browser cookie or API key from valid login",
