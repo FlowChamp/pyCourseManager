@@ -110,13 +110,13 @@ class TestUserAuth(Resource):
         return {"message": f"User {user} at school {school} is " +
                 "successfully authenticated for this endpoint"}, 418
 
+# /api/<school>/users/<user>/config
 class UserConfig(Resource):
     def __init__(self, client):
         self.client = client
 
     @requires_login
     def get(self, school, user):
-        # check_config_init(self.client, school, user)
         userdb = f"{school}-{user}" 
         config = self.client[userdb].config.find_one()
         del config['_id']
@@ -125,8 +125,6 @@ class UserConfig(Resource):
     @requires_login
     def post(self, school, user):
         new_config = request.get_json()
-        
-        check_config_init(self.client, school, user)
         userdb = f"{school}-{user}"
 
         conf_id = self.client[userdb].config.find_one()['_id']
@@ -168,6 +166,10 @@ class NewChartResource(Resource):
                 '"destination_chart_name"}'))
 
         target, year, destination = [command['target'], command['year'], command['destination']]
+        if destination in config['charts']:
+            abort(409, message=(f"Chart {destination} already exists on this server. "
+                "Please choose a different name."))
+
         user_collection = self.client[userdb][destination]
 
         stock_chart = list(self.client[f"{school}-stockcharts_{year}"][target].find())
