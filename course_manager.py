@@ -223,6 +223,8 @@ class ChartResource(Resource):
 
     @requires_login
     def delete(self, school, user, chart):
+        userdb = f"{school}-users" 
+
         user_chart = self.client[userdb][chart]
         if user_chart is None:
             abort(404, message=f"Chart {chart} was not found for this user")
