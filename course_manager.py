@@ -207,33 +207,25 @@ class ChartResource(Resource):
 
     @requires_login
     def post(self, school, user, chart):
-        abort(501)
+        """This endpoint allows users to post new courses to their charts.
+        It will return the ID of the newly added course
+        """
         userdb = f"{school}-users" 
-        user_collection = self.client[userdb][user] 
 
-        new_chart = response.get_json()
-        if type(new_chart) != list:
-            abort(400, message=("Please send a list of course objects "
-                "you wish to insert into this chart"))
+        block_metadata = request.get_json()
+        if block_metadata is None:
+            abort(400, message="Please send a new course to post to this chart") 
 
-        return new_chart, 201
+        user_chart = self.client[userdb][chart]
+        cid = str(user_chart.insert_one(block_metadata).inserted_id)
 
-    @requires_login
-    def put(self, school, user, chart):
-        abort(501)
-        userdb = f"{school}-users" 
-         
-
-        return new_course, 201
+        return {"_id": cid}, 201
 
     @requires_login
     def delete(self, school, user, chart):
-        abort(501)
-        userdb = f"{school}-users" 
-        collection = self.client[school].user_charts
-        collection.deleteMany({"user": user, "chart_name": chart})
+        user_chart = self.client[userdb][chart]
+        user_chart.drop()
         return 200
-
 
 # /api/<school>/users/<user>/charts/<chart>/<cid>
 class CourseResource(Resource):

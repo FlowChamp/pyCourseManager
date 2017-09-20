@@ -86,18 +86,11 @@ class UsageResource(Resource):
                     "Requires": "Browser cookie or API key from valid login",
                     "Returns": "The user's flowchart"
                 },
-                "POST": {
-                    "Requires": "Browser cookie or API key from valid login",
-                    "Description": "Create a new flowchart of name <chart>",
-                    "Accepts" : "Flowchart in JSON format. Must be sent with application/json content header",
-                    "Returns": "The new flowchart",
-                    "Note": "Chart cannot exist; if it does, please delete it first."
-                    },
-                "PUT": { 
+                "POST": { 
                     "Requires": "Browser cookie or API key from valid login",
                     "Description": "Append a course to the flowchart",
                     "Accepts" : "Course in JSON format. Must be sent with application/json content header",
-                    "Returns": "The course data wrapped with the course ID assigned"
+                    "Returns": "The course ID, accessible by the returned object's '_id' key"
                     },
                 "DELETE": {
                     "Requires": "Browser cookie or API key from valid login",
