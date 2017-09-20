@@ -224,7 +224,15 @@ class ChartResource(Resource):
     @requires_login
     def delete(self, school, user, chart):
         user_chart = self.client[userdb][chart]
+        if user_chart is None:
+            abort(404, message=f"Chart {chart} was not found for this user")
+
+        config = self.client[userdb].config.find_one()
+
+        del config['charts'][chart]
+        self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
         user_chart.drop()
+
         return 200
 
 # /api/<school>/users/<user>/charts/<chart>/<cid>
