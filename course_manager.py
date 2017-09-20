@@ -232,8 +232,10 @@ class ChartResource(Resource):
         del config['charts'][chart]
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
         user_chart.drop()
+        
+        config["_id"] = str(config["_id"])
 
-        return 200
+        return config, 200
 
 # /api/<school>/users/<user>/charts/<chart>/<cid>
 class CourseResource(Resource):
