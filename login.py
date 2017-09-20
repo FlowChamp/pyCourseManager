@@ -12,7 +12,7 @@ import lxml.html
 db = SQLAlchemy()
 
 def check_config_init(client, username):
-    if username in client.database_names():
+    if username not in client.database_names():
         if client[username].config.count() == 1:
             return
 
