@@ -12,7 +12,7 @@ from flask_restful import Resource, abort
 
 # from login_manager import User, requires_login
 from login import User, requires_login
-from bson import ObjectID
+from bson import ObjectId
 
 def dereference_chart_ids(client, school, chart):
     """
@@ -247,7 +247,7 @@ class CourseResource(Resource):
     @requires_login
     def get(self, user, chart, c_id):
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find(ObjectID(c_id))
+        course = self.client[userdb][chart].find(ObjectId(c_id))
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
         
@@ -261,7 +261,7 @@ class CourseResource(Resource):
             abort(400, message=f"Please send a new course to update the course at {c_id}")
 
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find(ObjectID(c_id))
+        course = self.client[userdb][chart].find(ObjectId(c_id))
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
 
@@ -274,10 +274,10 @@ class CourseResource(Resource):
     @requires_login
     def delete(self, user, chart, c_id):
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find(ObjectID(c_id))
+        course = self.client[userdb][chart].find(ObjectId(c_id))
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
         
-        self.client[userdb][chart].delete_one(ObjectID(c_id))
+        self.client[userdb][chart].delete_one(ObjectId(c_id))
 
         return 201 
