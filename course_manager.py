@@ -12,6 +12,7 @@ from flask_restful import Resource, abort
 
 # from login_manager import User, requires_login
 from login import User, requires_login
+from bson import ObjectID
 
 def dereference_chart_ids(client, school, chart):
     """
@@ -245,21 +246,38 @@ class CourseResource(Resource):
 
     @requires_login
     def get(self, user, chart, c_id):
-        abort(501)
-        userdb = f"{school}-users" 
-
-        return CourseManager.courses[user][chart][c_id]
+        userdb = f"{school}-{user}" 
+        course = self.client[userdb][chart].find(ObjectID(c_id))
+        if course is None:
+            abort(404, message=f"No course with id {c_id} found for chart {chart}")
+        
+        course['_id'] = str(course['_id'])
+        return course 
 
     @requires_login
     def put(self, user, chart, c_id):
-        abort(501)
-        userdb = f"{school}-users" 
+        new_course = request.get_json()
+        if new_course is None:
+            abort(400, message=f"Please send a new course to update the course at {c_id}")
 
-        return CourseManager.courses[user][chart][c_id]
+        userdb = f"{school}-{user}" 
+        course = self.client[userdb][chart].find(ObjectID(c_id))
+        if course is None:
+            abort(404, message=f"No course with id {c_id} found for chart {chart}")
+
+        # This should already be the case, but let's make sure
+        new_course['_id'] = c_id
+        self.client[userdb][chart].update_one({"_id": c_id}, {"$set": new_course}, upsert=False)
+
+        return 201 
 
     @requires_login
     def delete(self, user, chart, c_id):
-        abort(501)
-        userdb = f"{school}-users" 
+        userdb = f"{school}-{user}" 
+        course = self.client[userdb][chart].find(ObjectID(c_id))
+        if course is None:
+            abort(404, message=f"No course with id {c_id} found for chart {chart}")
+        
+        self.client[userdb][chart].delete_one(ObjectID(c_id))
 
-        return 200 
+        return 201 
