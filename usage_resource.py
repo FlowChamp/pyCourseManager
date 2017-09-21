@@ -107,7 +107,6 @@ class UsageResource(Resource):
                     "Requires": "Browser cookie or API key from valid login",
                     "Description" :"Updates the course at given id",
                     "Accepts" : "Course in JSON format. Must be sent with application/json content header",
-                    "Returns": "The new course at given id"
                     },
                 "DELETE": { 
                     "Requires": "Browser cookie or API key from valid login",
