@@ -16,7 +16,8 @@ You will need the following Python packages, with a Python version >= 3.6 (gotta
 - requests
 
 # TODO
-- Allow clients more control of the charts
-- Implement system to edit single courses
+- ~Allow clients more control of the charts~
+- ~Implement system to edit single courses~
 - Validate course formats
-- Implement a "Remember Me" function
+- ~Implement a "Remember Me" function~
+- Implement a way to rename charts
