@@ -37,7 +37,6 @@ def dereference_chart_ids(client, school, chart):
                 ids = block.pop('catalog_id', None)
                 for cid in ids:
                     course_data = client[db_name][dept].find_one(cid)
-                    # print(f"Looking for id {cid} in database {db_name}, collection {dept}")
                     cid_str = str(course_data["_id"])
                     course_data["_id"] = cid_str 
                     courses.append(course_data)
@@ -46,7 +45,6 @@ def dereference_chart_ids(client, school, chart):
                 new_chart[bid]['course_data'] = courses
             else:
                 cid_obj = block.pop('catalog_id', None)
-                # print(f"Really looking for id {cid_obj} in database {db_name}, collection {dept}")
                 course_data = client[db_name][dept].find_one(cid_obj)
                 cid = str(course_data["_id"])
                 course_data["_id"] = cid
@@ -93,7 +91,6 @@ class GetStockChart(Resource):
 
     def get(self, school, year, major):
         db_name = f"{school}-stockcharts_{year}"
-        print(self.client[db_name].collection_names())
         chart = self.client[db_name][major].find()
         if chart:
             return dereference_chart_ids(self.client, school, chart) 
@@ -210,7 +207,7 @@ class ChartResource(Resource):
         """This endpoint allows users to post new courses to their charts.
         It will return the ID of the newly added course
         """
-        userdb = f"{school}-users" 
+        userdb = f"{school}-{user}" 
 
         block_metadata = request.get_json()
         if block_metadata is None:
@@ -223,16 +220,16 @@ class ChartResource(Resource):
 
     @requires_login
     def delete(self, school, user, chart):
-        userdb = f"{school}-users" 
+        userdb = f"{school}-{user}" 
 
         user_chart = self.client[userdb][chart]
         if user_chart is None:
             abort(404, message=f"Chart {chart} was not found for this user")
 
         config = self.client[userdb].config.find_one()
-
         del config['charts'][chart]
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
+
         user_chart.drop()
         
         config["_id"] = str(config["_id"])
