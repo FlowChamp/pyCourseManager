@@ -66,7 +66,9 @@ class ListStockYears(Resource):
         db_start = f"{school}-stockcharts"
         for db_name in self.client.database_names():
             if db_name.startswith(db_start):
-                years.append(db_name.split('-')[2])
+                split = db_name.split('_')
+                if len(split) == 2:
+                    years.append(split[1])
 
         if not len(years):
             abort(404, message=f"There are no stock flowcharts for school {school}")
@@ -83,7 +85,11 @@ class ListStockCharts(Resource):
         if db_name not in self.client.database_names():
             abort(404, message=f"School {school} does not contain any stock charts for the year {year}")
 
-        return {'charts': sorted(self.client[db_name].collection_names())}
+        charts = list(self.client[db_name].major_mapping.find())
+        for x in charts:
+            del x["_id"]
+
+        return {'charts': charts}
 
 # /stock_charts/<year>/<chart>
 class GetStockChart(Resource):

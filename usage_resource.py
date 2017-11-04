@@ -33,7 +33,8 @@ class UsageResource(Resource):
             "/api/<string:school>/stock_charts/<string:year>": {
                 "GET": { 
                     "Returns": """A listing of all charts associated 
-                    with the catalog year <year> at the given <school>"""
+                    with the catalog year <year> at the given <school>.
+                    These are in the form {"chart_name": "dept_abbrev"}"""
                     }
                 },
 
