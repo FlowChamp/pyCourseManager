@@ -112,7 +112,7 @@ class TestUserAuth(Resource):
     @requires_login
     def get(self, school, user):
         return {"message": f"User {user} at school {school} is " +
-                "successfully authenticated for this endpoint"}, 418
+                "successfully authenticated for this endpoint"}, 400
 
 # /api/<school>/users/<user>/config
 class UserConfig(Resource):
@@ -251,7 +251,7 @@ class CourseResource(Resource):
         self.client = client
 
     @requires_login
-    def get(self, user, chart, c_id):
+    def get(self, school, user, chart, c_id):
         userdb = f"{school}-{user}" 
         course = self.client[userdb][chart].find(ObjectId(c_id))
         if course is None:
@@ -261,7 +261,7 @@ class CourseResource(Resource):
         return course 
 
     @requires_login
-    def put(self, user, chart, c_id):
+    def put(self, school, user, chart, c_id):
         new_course = request.get_json()
         if new_course is None:
             abort(400, message=f"Please send a new course to update the course at {c_id}")
@@ -278,7 +278,7 @@ class CourseResource(Resource):
         return 201 
 
     @requires_login
-    def delete(self, user, chart, c_id):
+    def delete(self, school, user, chart, c_id):
         userdb = f"{school}-{user}" 
         course = self.client[userdb][chart].find(ObjectId(c_id))
         if course is None:
