@@ -284,6 +284,6 @@ class CourseResource(Resource):
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
         
-        self.client[userdb][chart].delete_one(ObjectId(c_id))
+        self.client[userdb][chart].delete_one({"_id": c_id})
 
         return 201 
