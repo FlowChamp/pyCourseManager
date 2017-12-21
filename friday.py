@@ -102,7 +102,7 @@ api.add_resource(course_manager.ChartResource,
     )
 
 api.add_resource(course_manager.CourseResource,
-        '/api/<string:school>/users/<string:user>/charts/<string:chart>/charts/<string:c_id>',
+        '/api/<string:school>/users/<string:user>/charts/<string:chart>/<string:c_id>',
     resource_class_kwargs={'client': mongo}
     )
 
