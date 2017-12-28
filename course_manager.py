@@ -253,7 +253,7 @@ class CourseResource(Resource):
     @requires_login
     def get(self, school, user, chart, c_id):
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find({"_id": ObjectId(c_id)})
+        course = self.client[userdb][chart].find_one({"_id": ObjectId(c_id)})
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
         
@@ -267,12 +267,14 @@ class CourseResource(Resource):
             abort(400, message=f"Please send a new course to update the course at {c_id}")
 
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find({"_id": ObjectId(c_id)})
+        course = self.client[userdb][chart].find_one({"_id": ObjectId(c_id)})
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
 
-        # This should already be the case, but let's make sure
-        new_course['_id'] = c_id
+        # Fix new course info
+        del new_course['_id']
+        new_course['catalog_id'] = ObjectId(new_course['catalog_id'])
+
         self.client[userdb][chart].update_one({"_id": ObjectId(c_id)}, {"$set": new_course}, upsert=False)
 
         return 201 
@@ -280,7 +282,7 @@ class CourseResource(Resource):
     @requires_login
     def delete(self, school, user, chart, c_id):
         userdb = f"{school}-{user}" 
-        course = self.client[userdb][chart].find({"_id": ObjectId(c_id)})
+        course = self.client[userdb][chart].find_one({"_id": ObjectId(c_id)})
         if course is None:
             abort(404, message=f"No course with id {c_id} found for chart {chart}")
         
