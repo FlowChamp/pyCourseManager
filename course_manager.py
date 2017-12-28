@@ -273,7 +273,7 @@ class CourseResource(Resource):
 
         # This should already be the case, but let's make sure
         new_course['_id'] = c_id
-        self.client[userdb][chart].update_one({"_id": c_id}, {"$set": new_course}, upsert=False)
+        self.client[userdb][chart].update_one({"_id": ObjectId(c_id)}, {"$set": new_course}, upsert=False)
 
         return 201 
 
