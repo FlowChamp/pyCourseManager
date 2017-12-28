@@ -112,7 +112,7 @@ class TestUserAuth(Resource):
     @requires_login
     def get(self, school, user):
         return {"message": f"User {user} at school {school} is " +
-                "successfully authenticated for this endpoint"}, 400
+                "successfully authenticated for this endpoint"}, 200
 
 # /api/<school>/users/<user>/config
 class UserConfig(Resource):
