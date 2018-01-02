@@ -54,6 +54,7 @@ class FullCatalogResource(Resource):
         courses = []
         for coll in self.client[f"{school}-catalog"].collection_names():
             for crs in self.client[f"{school}-catalog"][coll].find():
+                crs["_id"] = str(crs["_id"])
                 courses.append(crs)
 
         return courses
