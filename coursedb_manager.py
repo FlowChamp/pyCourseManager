@@ -46,6 +46,18 @@ def check_request(func):
         return func(self, arg)
     return inner
 
+class FullCatalogResource(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, school):
+        courses = []
+        for coll in self.client[f"{school}-catalog"].collection_names():
+            for crs in self.client[f"{school}-catalog"][coll].find():
+                courses.append(crs)
+
+        return courses
+
 # The check request wrapper handles most of the arguments passed to these functions,
 # so the "actual" function only need take one arg (which is given by the wrapper)
 class DepartmentResource(Resource):

@@ -38,6 +38,10 @@ mongo = MongoClient()
 ## API stuff
 
 # CourseDB resources
+api.add_resource(coursedb_manager.FullCatalogResource, 
+    '/api/<string:school>/catalog',
+    resource_class_kwargs={'client': mongo}
+    )
 api.add_resource(coursedb_manager.DepartmentResource, 
     '/api/<string:school>/courses',
     resource_class_kwargs={'client': mongo}
