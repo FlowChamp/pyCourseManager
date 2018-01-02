@@ -120,9 +120,20 @@ class UsageResource(Resource):
                     "Returns": "A list of available departments"
                     }
                 },
+            "/api/<string:school>/catalog": {
+                "GET": {
+                    "Returns": "A list of available departments"
+                    }
+                },
+
             "/api/<string:school>/courses/<string:dept>": {
                 "GET": {
                     "Returns": "A list of all courses within a given department"
+                    }
+                },
+            "/api/<string:school>/catalog/<string:dept>": {
+                "GET": {
+                    "Returns": "A list of all course data for the courses within a given department"
                     }
                 },
 
