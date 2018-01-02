@@ -51,13 +51,26 @@ class FullCatalogResource(Resource):
         self.client = client
 
     def get(self, school):
-        return list(self.client[f"{school}-catalog"].collection_names())
+        db_name = f"{school}-catalog"
+
+        if db_name not in self.client.database_names():
+            abort(404, message=f"No courses database exists for school {school}")
+
+        return list(self.client[db_name].collection_names())
 
 class FullDeptResource(Resource):
     def __init__(self, client):
         self.client = client
 
     def get(self, school, dept):
+        db_name = f"{school}-catalog"
+
+        if db_name not in self.client.database_names():
+            abort(404, message=f"No courses database exists for school {school}")
+
+        if dept not in self.client[db_name].collection_names():
+            abort(404, message=f"Department {dept} does not exist")
+
         courses = []
         for crs in self.client[f"{school}-catalog"][dept].find():
             crs["_id"] = str(crs["_id"])
