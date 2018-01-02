@@ -51,11 +51,17 @@ class FullCatalogResource(Resource):
         self.client = client
 
     def get(self, school):
+        return list(self.client[f"{school}-catalog"].collection_names())
+
+class FullDeptResrouce(Resource):
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, school, dept):
         courses = []
-        for coll in self.client[f"{school}-catalog"].collection_names():
-            for crs in self.client[f"{school}-catalog"][coll].find():
-                crs["_id"] = str(crs["_id"])
-                courses.append(crs)
+        for crs in self.client[f"{school}-catalog"][dept].find():
+            crs["_id"] = str(crs["_id"])
+            courses.append(crs)
 
         return courses
 
