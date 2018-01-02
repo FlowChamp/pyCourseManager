@@ -53,7 +53,7 @@ class FullCatalogResource(Resource):
     def get(self, school):
         return list(self.client[f"{school}-catalog"].collection_names())
 
-class FullDeptResrouce(Resource):
+class FullDeptResource(Resource):
     def __init__(self, client):
         self.client = client
 
