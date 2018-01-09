@@ -1,4 +1,4 @@
-# pyCourseManager 0.2
+# pyCourseManager 0.3
 A RESTful server to act as a database for school courses.
 
 ## Setup
