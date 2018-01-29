@@ -280,7 +280,7 @@ class CourseResource(Resource):
         if isinstance(cat_id, list):
             new_course['catalog_id'] = [ObjectId(x) for x in cat_id]
         else:
-            new_course['catalog_id'] = [ObjectId(cat_id)]
+            new_course['catalog_id'] = ObjectId(cat_id)
 
         self.client[userdb][chart].update_one({"_id": ObjectId(c_id)}, {"$set": new_course}, upsert=False)
 
