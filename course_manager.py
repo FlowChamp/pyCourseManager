@@ -174,6 +174,7 @@ class NewChartResource(Resource):
 
         target, year, destination = [command['target'], command['year'], command['destination']]
         if destination in config['charts']:
+            print(config['charts'])
             abort(409, message=(f"Chart {destination} already exists on this server. "
                 "Please choose a different name."))
 
@@ -193,7 +194,8 @@ class NewChartResource(Resource):
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
         user_collection.insert_many(new_chart)
-        return {"message": "Chart copied successfully"}, 201
+        del config['_id']
+        return config, 201
 
 # /api/<school>/users/<user>/charts/<chart>
 class ChartResource(Resource):
@@ -273,7 +275,12 @@ class CourseResource(Resource):
 
         # Fix new course info
         del new_course['_id']
-        new_course['catalog_id'] = ObjectId(new_course['catalog_id'])
+        cat_id = new_course['catalog_id']
+
+        if isinstance(cat_id, list):
+            new_course['catalog_id'] = [ObjectId(x) for x in cat_id]
+        else:
+            new_course['catalog_id'] = [ObjectId(cat_id)]
 
         self.client[userdb][chart].update_one({"_id": ObjectId(c_id)}, {"$set": new_course}, upsert=False)
 
