@@ -107,36 +107,36 @@ class AuthorizeResource(Resource):
         resp = session.post(LOGIN, data=form, params=params)
 
         result = resp.headers['X-Frame-Options']
-        if result != "DENY":
-            cookie = resp.cookies['org.jasig.portal.PORTLET_COOKIE']
-            token = hashlib.sha256(str.encode(cookie)).hexdigest()
 
-            username = f"{school}-{username}"
-            if args:
-                rem = True if args.get("remember") else False
-            else:
-                rem = False
+        cookie = resp.cookies['org.jasig.portal.PORTLET_COOKIE']
+        token = hashlib.sha256(str.encode(cookie)).hexdigest()
 
-            tmp_user = User.query.filter_by(username=username).first()
-            if tmp_user is not None:
-                tmp_user.set_token(token, remember=rem)
-            else: 
-                user = User(username, token, remember=rem)
-                db.session.add(user)
-
-            db.session.commit()
-            
-            check_config_init(self.client, username) 
-            config = self.client[username].config.find_one()
-            del config['_id']
-            
-            utc_time = datetime.utcnow() 
-            utc_time += timedelta(days=365) if rem else timedelta(minutes=30)
-            date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-            return config, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
+        username = f"{school}-{username}"
+        if args:
+            rem = True if args.get("remember") else False
         else:
-            abort(401, message=f"Password incorrect for {username}")
+            rem = False
+
+        tmp_user = User.query.filter_by(username=username).first()
+        if tmp_user is not None:
+            tmp_user.set_token(token, remember=rem)
+        else: 
+            user = User(username, token, remember=rem)
+            db.session.add(user)
+
+        db.session.commit()
+        
+        check_config_init(self.client, username) 
+        config = self.client[username].config.find_one()
+        del config['_id']
+        
+        utc_time = datetime.utcnow() 
+        utc_time += timedelta(days=365) if rem else timedelta(minutes=30)
+        date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+        return config, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
+        # else:
+            # abort(401, message=f"Password incorrect for {username}")
 
     def post(self, school):
         return self.get(school)
