@@ -108,7 +108,10 @@ class AuthorizeResource(Resource):
 
         result = resp.headers['X-Frame-Options']
 
+        print(resp.cookies)
         cookie = resp.cookies['org.jasig.portal.PORTLET_COOKIE']
+        abort(400, message="This is not the login you are looking for")
+
         token = hashlib.sha256(str.encode(cookie)).hexdigest()
 
         username = f"{school}-{username}"
