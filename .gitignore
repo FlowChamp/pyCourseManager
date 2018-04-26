@@ -2,7 +2,7 @@
 secret.py
 test/*
 course_manager_old.py
-users.db
+users.db*
 cookies.txt
 
 # Byte-compiled / optimized / DLL files

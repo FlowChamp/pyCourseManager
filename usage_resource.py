@@ -3,6 +3,20 @@ from flask_restful import Resource
 class UsageResource(Resource):
     def get(self):
         return {"Usage": {
+            "/api/<string:school>/signup": {
+                "GET": {
+                    "Requires": 'The email to register the user with, as a JSON payload with an "email" key',
+                    "Description": 'Send the user an email with a PIN to complete the registration process'
+                },
+
+                "POST": {
+                    "Requires": 'HTTP Basic Authentication to set the new user\'s credentials, and a JSON Payload with the "pin" key set to the emailed PIN',
+                    "Description": 'Register the user, and optionally be remembered for a year',
+                    "Accepts" : 'The JSON payload\'s "remember" key set (the value is arbitrary)',
+                    "Returns": "The users's saved configuration"
+                }
+            },
+
             "/api/<string:school>/authorize": {
                 "GET": {
                     "Requires": "HTTP Basic Authentication to authenticate the new user",

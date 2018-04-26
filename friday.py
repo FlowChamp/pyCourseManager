@@ -5,7 +5,7 @@ import course_manager
 import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
-from login import AuthorizeResource, LogoutResource, db
+from login import SignUpResource, AuthorizeResource, LogoutResource, db
 
 from flask import Flask
 from flask_restful import Api
@@ -63,6 +63,10 @@ api.add_resource(coursedb_manager.CatalogCourseResource,
 # Login resources
 api.add_resource(AuthorizeResource,
     '/api/<string:school>/authorize',
+    resource_class_kwargs={'client': mongo}
+    )
+api.add_resource(SignUpResource,
+    '/api/<string:school>/signup',
     resource_class_kwargs={'client': mongo}
     )
 
