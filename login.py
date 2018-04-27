@@ -30,7 +30,7 @@ def email_pin(pin, user):
     msg['From'] = email_user
     msg['To'] = user 
 
-    server = smtplib.SMTP('outlook.office365.com', 25)
+    server = smtplib.SMTP('40.97.162.114', 25)
     server.ehlo()
     server.starttls()
     server.login(email_user, email_password)
@@ -116,21 +116,28 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
-class SignUpResource(Resource):
+class PinResource(Resource):
     def __init__(self, client):
         self.client = client
     
-    def get(self, school):
+    def post(self, school):
         args = request.get_json()
         user_email = args.get('email')
         if not user_email:
             abort(400, message="Please provide an email to send the user a pin")
+        
 
         pin = random.randint(99999, 999999)
 
         email_pin(pin, user_email)
 
         USER_PINS[user_email] = pin
+
+        return {"message": "PIN emailed successfully"}
+    
+class SignUpResource(Resource):
+    def __init__(self, client):
+        self.client = client
     
     def post(self, school):
         args = request.get_json()
