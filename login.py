@@ -90,6 +90,7 @@ class User(db.Model):
 
     def __init__(self, username, email, token, remember=None):
         self.username = username
+        self.email = email
         self.set_token(token, remember)
 
     def set_token(self, token, remember=None):
