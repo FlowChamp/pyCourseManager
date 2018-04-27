@@ -82,12 +82,13 @@ def requires_login(func):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
+    email = db.Column(db.String(80), unique=True)
     password = db.Column(db.String(80))
     token = db.Column(db.String(80))
     token_expiration = db.Column(db.DateTime())
     is_authorized = db.Column(db.Boolean())
 
-    def __init__(self, username, token, remember=None):
+    def __init__(self, username, email, token, remember=None):
         self.username = username
         self.set_token(token, remember)
 
@@ -163,7 +164,7 @@ class SignUpResource(Resource):
             abort(400, message=f"User {username} already exists, please sign in instead")
 
         rem = True if args.get("remember") else False
-        user = User(username, token, remember=rem)
+        user = User(username, user_email, token, remember=rem)
         user.set_password(password)
         user.is_authorized = True
         db.session.add(user)
