@@ -17,7 +17,27 @@ import random
 
 db = SQLAlchemy()
 
-USER_PINS = {}
+USER_TOKENS = {}
+
+class UserPin:
+    def __init__(self, email, pin):
+        self.email = email
+        self.pin = int(pin)
+        self.expiry = datetime.now() + timedelta(minutes=20)
+
+    def is_valid(self, p):
+        correct_pin = (self.pin == int(p))
+        expired = (datetime.now() > self.expiry)
+        
+        if expired:
+            return (False, "PIN has expired")
+        elif not correct_pin:
+            return (False, "Incorrect PIN")
+        else:
+            return (True, "Success")
+
+    def __str__(self):
+        return f"{self.email}: {self.pin}"
 
 def email_pin(pin, user):
     email_user = secret.email_user
@@ -130,12 +150,16 @@ class PinResource(Resource):
         
 
         pin = random.randint(99999, 999999)
-
         email_pin(pin, user_email)
 
-        USER_PINS[user_email] = pin
+        token = hashlib.sha256(str.encode(user_email + str(datetime.now()) + str(pin))).hexdigest()
 
-        return {"message": "PIN emailed successfully"}
+        USER_TOKENS[token] = UserPin(user_email, pin)
+
+        return {"token": token}
+        
+        ## DEBUG
+        # return {"token": token, "pin": pin}
     
 class SignUpResource(Resource):
     def __init__(self, client):
@@ -143,36 +167,43 @@ class SignUpResource(Resource):
     
     def post(self, school):
         args = request.get_json()
-        user_email = request.authorization.username
+        username = request.authorization.username
         password = request.authorization.password
 
         pin = args.get('pin')
+        # Token to check PIN validity against
+        ptoken = args.get('token')
 
         if not pin:
-            abort(403, message=f"Please provide a PIN for user {user_email}")
-        elif int(pin) != USER_PINS.get(user_email):
-            abort(403, message=f"Incorrect PIN for user {user_email}")
+            abort(403, message=f"Please provide a PIN")
 
-        del USER_PINS[user_email]
+        user_info = USER_TOKENS.get(ptoken)
+        if not user_info:
+            abort(404, message=f"Token {ptoken} is not a valid user token")
 
-        email_name = user_email[:user_email.find('@')]
+        pin_is_valid, msg = user_info.is_valid(pin) 
+        if not pin_is_valid:
+            abort(403, message=msg)
 
-        token = hashlib.sha256(str.encode(user_email + str(datetime.now()))).hexdigest()
-        username = f"{school}-{email_name}"
+        # Set a token to be used to authorize against resources
+        token = hashlib.sha256(str.encode(user_info.email + str(datetime.now()))).hexdigest()
+        full_username = f"{school}-{username}"
 
-        tmp_user = User.query.filter_by(username=username).first()
+        tmp_user = User.query.filter_by(username=full_username).first()
         if tmp_user is not None:
-            abort(400, message=f"User {username} already exists, please sign in instead")
+            abort(400, message=f"User {full_username} already exists, please sign in instead")
 
         rem = True if args.get("remember") else False
-        user = User(username, user_email, token, remember=rem)
+        user = User(full_username, user_info.email, token, remember=rem)
         user.set_password(password)
         user.is_authorized = True
         db.session.add(user)
         db.session.commit()
 
-        check_config_init(self.client, username) 
-        config = self.client[username].config.find_one()
+        del USER_TOKENS[ptoken]
+
+        check_config_init(self.client, full_username) 
+        config = self.client[full_username].config.find_one()
         del config['_id']
         
         utc_time = datetime.utcnow() 
