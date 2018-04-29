@@ -12,7 +12,6 @@ You will need the following Python packages, with a Python version >= 3.6 (gotta
 - flask-login
 - flask-restful
 - flask-SQLAlchemy
-- lxml
 - requests
 
 # TODO

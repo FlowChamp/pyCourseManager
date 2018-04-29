@@ -10,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 from email.mime.text import MIMEText
 import requests
-import lxml.html
 
 import secret
 import random
