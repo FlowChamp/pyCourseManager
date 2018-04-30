@@ -1,6 +1,5 @@
 # Stuff I don't want
 secret.py
-test/*
 course_manager_old.py
 users.db*
 cookies.txt
