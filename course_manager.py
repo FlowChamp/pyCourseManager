@@ -191,6 +191,7 @@ class NewChartResource(Resource):
             new_chart.append(block)
 
         config['charts'][destination] = target
+        config['active_chart'] = destination
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
         user_collection.insert_many(new_chart)

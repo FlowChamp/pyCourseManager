@@ -56,9 +56,10 @@ def email_pin(pin, user):
     server.sendmail(email_user, [user], msg.as_string())
     server.quit()
 
-def check_config_init(client, username):
-    if username not in client.database_names():
-        if client[username].config.count() == 1:
+def check_config_init(client, username, school):
+    full_username = f"{school}-{username}"
+    if full_username not in client.database_names():
+        if client[full_username].config.count() == 1:
             return
 
         config = {
@@ -67,7 +68,7 @@ def check_config_init(client, username):
             "active_chart": "",
             "charts": {}
         }
-        client[username].config.insert_one(config)
+        client[full_username].config.insert_one(config)
 
 def requires_login(func):
     def try_token(*args, **kwargs):
@@ -156,9 +157,6 @@ class PinResource(Resource):
         USER_TOKENS[token] = UserPin(user_email, pin)
 
         return {"token": token}
-        
-        ## DEBUG
-        # return {"token": token, "pin": pin}
     
 class SignUpResource(Resource):
     def __init__(self, client):
@@ -201,7 +199,7 @@ class SignUpResource(Resource):
 
         del USER_TOKENS[ptoken]
 
-        check_config_init(self.client, full_username) 
+        check_config_init(self.client, username, school) 
         config = self.client[full_username].config.find_one()
         del config['_id']
         
@@ -210,6 +208,9 @@ class SignUpResource(Resource):
         date = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         return config, {'Set-Cookie': f'friday-login-token={token};Expires={date}'}
+
+    def put(self, school):
+        pass
 
 class AuthorizeResource(Resource):
     def __init__(self, client):
@@ -231,13 +232,13 @@ class AuthorizeResource(Resource):
         else:
             email_name = username[:username.find('@')]
 
-        username = f"{school}-{email_name}"
+        full_username = f"{school}-{email_name}"
         if args:
             rem = True if args.get("remember") else False
         else:
             rem = False
 
-        tmp_user = User.query.filter_by(username=username).first()
+        tmp_user = User.query.filter_by(username=full_username).first()
         if tmp_user is not None:
             if not tmp_user.check_password(password):
                 abort(401, message=f"Incorrect password for user {username}")
@@ -248,8 +249,8 @@ class AuthorizeResource(Resource):
 
         db.session.commit()
         
-        check_config_init(self.client, username) 
-        config = self.client[username].config.find_one()
+        check_config_init(self.client, username, school) 
+        config = self.client[full_username].config.find_one()
         del config['_id']
         
         utc_time = datetime.utcnow() 
