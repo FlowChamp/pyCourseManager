@@ -1,14 +1,7 @@
-import requests
-import getpass
 import helper_functions
 
 def main():
-    username = getpass.getuser()
-    password = getpass.getpass()
-
-    sess = requests.Session()
-
-    sess.auth = (username, password)
+    sess = helper_functions.make_session()
 
     print("\n[Authorizing]") 
     helper_functions.authorize(sess, username)

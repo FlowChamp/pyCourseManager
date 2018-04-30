@@ -1,4 +1,19 @@
+import requests
+import getpass
+
 URL = "http://127.0.0.1:4500/api/cpslo"
+EMAIL = "james.r.heald@gmail.com"
+
+def make_session(username=None, password=None):
+    if username is None:
+        username = input("Username: ") 
+
+    if password is None:
+        password = getpass.getpass()
+
+    sess = requests.Session()
+    sess.auth = (username, password)
+    return (sess, username)
 
 def get_pin(session, email):
     resp = session.post(f"{URL}/getpin", json={"email": email})
