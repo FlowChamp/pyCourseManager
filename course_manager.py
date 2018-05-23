@@ -238,8 +238,10 @@ class ChartResource(Resource):
 
         config = self.client[userdb].config.find_one()
         del config['charts'][chart]
+
+        charts = list(config['charts'])
         if config['active_chart'] == chart:
-            config['active_chart'] = ''
+            config['active_chart'] = charts[0] 
 
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
