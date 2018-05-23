@@ -20,7 +20,7 @@ api = Api(app)
 ### UNCOMMENT TO ENABLE CORS ### 
 ###         IF NEEDED        ###
 from flask_cors import CORS
-CORS(app)
+CORS(app, supports_credentials=True)
 ################################
 
 # login_manager.init_app(app)
