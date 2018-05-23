@@ -241,7 +241,7 @@ class ChartResource(Resource):
 
         charts = list(config['charts'])
         if config['active_chart'] == chart:
-            config['active_chart'] = charts[0] 
+            config['active_chart'] = charts[0] if len(charts) > 0 else '' 
 
         self.client[userdb].config.update_one({"_id": config["_id"]}, {"$set": config}, upsert=False)
 
