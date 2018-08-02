@@ -14,6 +14,10 @@ from flask_restful import Resource, abort
 from login import User, requires_login
 from bson import ObjectId
 
+
+NO_CAT_ID_TYPES = ["general_ed", "free"
+
+
 def dereference_chart_ids(client, school, chart):
     """
     MongoClient string dict -> dict
@@ -278,12 +282,15 @@ class CourseResource(Resource):
 
         # Fix new course info
         del new_course['_id']
-        cat_id = new_course['catalog_id']
 
-        if isinstance(cat_id, list):
-            new_course['catalog_id'] = [ObjectId(x) for x in cat_id]
-        else:
-            new_course['catalog_id'] = ObjectId(cat_id)
+        # TODO: More strict definitions of when this should/should not occur
+        if 'catalog_id' in new_course:
+            cat_id = new_course['catalog_id']
+
+            if isinstance(cat_id, list):
+                new_course['catalog_id'] = [ObjectId(x) for x in cat_id]
+            else:
+                new_course['catalog_id'] = ObjectId(cat_id)
 
         self.client[userdb][chart].update_one({"_id": ObjectId(c_id)}, {"$set": new_course}, upsert=False)
 
