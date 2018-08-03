@@ -67,8 +67,9 @@ def dereference_chart_ids(client, school, chart):
 def check_block_metadata(block_metadata, msg, have_id=False):
     keys = set(block_metadata.keys())
     
-    # This key is not required, so effectively don't check it
+    # These keys are not required, so effectively don't check them
     keys.add("catalog_id")
+    keys.add("department")
 
     # Enable this function to verify blocks with or without IDs
     if not have_id:
