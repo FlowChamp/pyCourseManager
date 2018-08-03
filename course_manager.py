@@ -64,17 +64,24 @@ def dereference_chart_ids(client, school, chart):
     return new_chart 
 
 
-def check_block_metadata(block_metadata, msg):
+def check_block_metadata(block_metadata, msg, have_id=False):
     keys = set(block_metadata.keys())
     
     # This key is not required, so effectively don't check it
     keys.add("catalog_id")
 
+    # Enable this function to verify blocks with or without IDs
+    if not have_id:
+        keys.add("_id")
+
     if block_metadata is None:
         abort(400, message=msg) 
     
     if keys != BLOCK_KEYS:
-        abort(400, message="Please supply all fields for the block metadata")
+        abort(400, message=(
+            "Please supply all fields for the block metadata. "
+            f"Missing fields: {BLOCK_KEYS.symmetric_difference(keys)}
+        ))
 
 
 # /stock_charts
