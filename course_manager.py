@@ -15,6 +15,12 @@ from login import User, requires_login
 from bson import ObjectId
 
 
+BLOCK_KEYS = {
+    "_id", "catalog_id", "course_type", "department", 
+    "flags", "ge_type", "notes", "time",
+}
+
+
 def dereference_chart_ids(client, school, chart):
     """
     MongoClient string dict -> dict
@@ -56,6 +62,19 @@ def dereference_chart_ids(client, school, chart):
         new_chart[bid]['block_metadata'] = block
 
     return new_chart 
+
+def check_block_metadata(block_metadata, msg):
+    keys = set(block_metadata.keys())
+    
+    # This key is not required, so effectively don't check it
+    keys.add("catalog_id")
+
+    if block_metadata is None:
+        abort(400, message=msg) 
+    
+    if keys() != BLOCK_KEYS:
+        abort(400, message="Please supply all fields for the block metadata")
+
 
 # /stock_charts
 class ListStockYears(Resource):
@@ -220,20 +239,24 @@ class ChartResource(Resource):
         """
         userdb = f"{school}-{user}" 
         db_name = f"{school}-catalog"
+        course = {}
 
         block_metadata = request.get_json()
-        if block_metadata is None:
-            abort(400, message="Please send a new course to post to this chart") 
+        check_block_metadata(
+            block_metadata,
+            "Please send a new course to post to this chart",
+        )
+        
+        if "catalog_id" in block_metadata:
+            cat_id = block_metadata["catalog_id"] 
+            dept = block_metadata["department"]
 
-        cat_id = block_metadata["catalog_id"] 
-        dept = block_metadata["department"]
-
-        course = self.client[db_name][dept].find_one({"_id": ObjectId(cat_id)})
+            course = self.client[db_name][dept].find_one({"_id": ObjectId(cat_id)})
+            course["_id"] = str(course(["_id"]))
 
         user_chart = self.client[userdb][chart]
         cid = str(user_chart.insert_one(block_metadata).inserted_id)
 
-        course["_id"] = str(course(["_id"]))
         block_metadata["_id"] = str(block_metadata(["_id"]))
 
         return {
