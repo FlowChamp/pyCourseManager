@@ -80,7 +80,7 @@ def check_block_metadata(block_metadata, msg, have_id=False):
     if keys != BLOCK_KEYS:
         abort(400, message=(
             "Please supply all fields for the block metadata. "
-            f"Missing fields: {BLOCK_KEYS.symmetric_difference(keys)}
+            f"Missing fields: {BLOCK_KEYS.symmetric_difference(keys)}"
         ))
 
 
