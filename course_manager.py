@@ -274,7 +274,11 @@ class ChartResource(Resource):
         user_chart = self.client[userdb][chart]
         cid = str(user_chart.insert_one(block_metadata).inserted_id)
 
+        # Set to send to frontend
         block_metadata["_id"] = str(block_metadata["_id"])
+
+        if "catalog_id" in block_metadata:
+            block_metadata["catalog_id"] = str(block_metadata["catalog_id"])
 
         return {
             "block_metadata": block_metadata,
