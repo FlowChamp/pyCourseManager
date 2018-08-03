@@ -261,12 +261,12 @@ class ChartResource(Resource):
             dept = block_metadata["department"]
 
             course = self.client[db_name][dept].find_one({"_id": ObjectId(cat_id)})
-            course["_id"] = str(course(["_id"]))
+            course["_id"] = str(course["_id"])
 
         user_chart = self.client[userdb][chart]
         cid = str(user_chart.insert_one(block_metadata).inserted_id)
 
-        block_metadata["_id"] = str(block_metadata(["_id"]))
+        block_metadata["_id"] = str(block_metadata["_id"])
 
         return {
             "_id": cid,
