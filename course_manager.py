@@ -15,9 +15,6 @@ from login import User, requires_login
 from bson import ObjectId
 
 
-NO_CAT_ID_TYPES = ["general_ed", "free"
-
-
 def dereference_chart_ids(client, school, chart):
     """
     MongoClient string dict -> dict
