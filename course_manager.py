@@ -219,15 +219,28 @@ class ChartResource(Resource):
         It will return the ID of the newly added course
         """
         userdb = f"{school}-{user}" 
+        db_name = f"{school}-catalog"
 
         block_metadata = request.get_json()
         if block_metadata is None:
             abort(400, message="Please send a new course to post to this chart") 
 
+        cat_id = block_metadata["catalog_id"] 
+        dept = block_metadata["department"]
+
+        course = self.client[db_name][dept].find_one({"_id": ObjectId(cat_id)})
+
         user_chart = self.client[userdb][chart]
         cid = str(user_chart.insert_one(block_metadata).inserted_id)
 
-        return {"_id": cid}, 201
+        course["_id"] = str(course(["_id"]))
+        block_metadata["_id"] = str(block_metadata(["_id"]))
+
+        return {
+            "_id": cid,
+            "block_metadata": block_metadata,
+            "course_data": course,
+        }, 201
 
     @requires_login
     def delete(self, school, user, chart):
