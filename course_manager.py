@@ -37,7 +37,7 @@ def dereference_chart_ids(client, school, chart):
         block['_id'] = bid
         new_chart[bid] = {}
         
-        if 'catalog_id' in block:
+        if 'catalog_id' in block and 'department' in block:
             dept = block["department"]
 
             if isinstance(block['catalog_id'], list):
