@@ -5,6 +5,7 @@ Notes:
 """
 
 import json, os
+import logging
 from datetime import datetime
 
 from flask import request
@@ -54,6 +55,11 @@ def dereference_chart_ids(client, school, chart):
             else:
                 cid_obj = block.pop('catalog_id', None)
                 course_data = client[db_name][dept].find_one(cid_obj)
+
+                if course_data is None:
+                    logging.warning(f"Cannot find {cid_obj} in {dept}")
+                    continue
+
                 cid = str(course_data["_id"])
                 course_data["_id"] = cid
                 block['catalog_id'] = cid
@@ -256,9 +262,11 @@ class ChartResource(Resource):
             "Please send a new course to post to this chart",
         )
         
+
         if "catalog_id" in block_metadata:
             cat_id = block_metadata["catalog_id"] 
             dept = block_metadata["department"]
+            block_metadata["catalog_id"] = ObjectId(cat_id)
 
             course = self.client[db_name][dept].find_one({"_id": ObjectId(cat_id)})
             course["_id"] = str(course["_id"])
@@ -269,7 +277,6 @@ class ChartResource(Resource):
         block_metadata["_id"] = str(block_metadata["_id"])
 
         return {
-            "_id": cid,
             "block_metadata": block_metadata,
             "course_data": course,
         }, 201
