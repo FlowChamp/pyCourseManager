@@ -49,7 +49,7 @@ def email_pin(pin, user):
     msg['From'] = email_user
     msg['To'] = user 
 
-    server = smtplib.SMTP('40.97.162.114', 25)
+    server = smtplib.SMTP(secret.smtp_server, secret.smtp_port)
     server.ehlo()
     server.starttls()
     server.login(email_user, email_password)
