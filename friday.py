@@ -5,7 +5,14 @@ import course_manager
 import coursedb_manager
 from usage_resource import UsageResource
 from secret import sqlalchemy_url
-from login import PinResource, SignUpResource, AuthorizeResource, LogoutResource, db
+from login import (
+    PinResource, 
+    SignUpResource, 
+    AuthorizeResource, 
+    LogoutResource, 
+    UserManagementResource,
+    db,
+)
 
 from flask import Flask
 from flask_restful import Api
@@ -74,6 +81,7 @@ api.add_resource(SignUpResource,
     resource_class_kwargs={'client': mongo}
     )
 
+api.add_resource(UserManagementResource, '/api/<string:school>/users/<string:user>')
 api.add_resource(LogoutResource,  '/api/<string:school>/users/<string:user>/logout')
 
 # How to use my lovely program
@@ -90,11 +98,6 @@ api.add_resource(course_manager.ListStockCharts,
 
 api.add_resource(course_manager.GetStockChart,   
     '/api/<string:school>/stock_charts/<string:year>/<string:major>',
-    resource_class_kwargs={'client': mongo}
-    )
-
-api.add_resource(course_manager.TestUserAuth,
-    '/api/<string:school>/users/<string:user>',
     resource_class_kwargs={'client': mongo}
     )
 

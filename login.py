@@ -190,6 +190,10 @@ class SignUpResource(Resource):
         if tmp_user is not None:
             abort(400, message=f"User {full_username} already exists, please sign in instead")
 
+        tmp_user = User.query.filter_by(email=user_info.email).first()
+        if tmp_user is not None:
+            abort(400, message=f"An account for {user_info.email} already exists")
+
         rem = True if args.get("remember") else False
         user = User(full_username, user_info.email, token, remember=rem)
         user.set_password(password)
@@ -276,3 +280,21 @@ class LogoutResource(Resource):
 
         return {"message": f"User {user} successfully logged out"}
 
+class UserManagementResource(Resource):
+    @requires_login
+    def get(self, school, user):
+        return {"message": f"User {user} at school {school} is " +
+                "successfully authenticated for this endpoint"}, 200
+
+    @requires_login
+    def delete(self, school, user):
+        username = f"{school}-{user}"
+
+        user = User.query.filter_by(username=username).first()
+        db.session.delete(user)
+
+        db.session.commit()
+
+        ## TODO: Also delete MongoDB info
+
+        return {"message": f"User {user} successfully deleted"}

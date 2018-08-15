@@ -39,6 +39,13 @@ class FridaySession:
 
         return resp
 
+    def delete_wrapper(self, endpoint):
+        resp = self.session.delete(f"{self.URL}/{endpoint}")
+        self.responses[endpoint] = resp
+        self.last_response = resp
+
+        return resp
+
     def get_pin(self):
         resp = self.post_wrapper("getpin", {"email": self.EMAIL})
 
@@ -72,7 +79,17 @@ class FridaySession:
 
         print(f"Authentication successful for user {self.username}")
         self.config = resp.json()
-        
+    
+    def delete_user(self):
+        resp = self.delete_wrapper(f"users/{self.username}")
+
+        if resp.status_code != 200:
+            print("[ERROR] Something went wrong...")
+            print(f"[{resp.status_code}]: {resp.json()}")
+            return
+
+        print(f"User {self.username} deleted")
+
 
     def test_auth(self):
         resp = self.get_wrapper(f"users/{self.username}")
@@ -81,9 +98,9 @@ class FridaySession:
             print("[ERROR] Authentication unsuccessful")
             print(f"[{resp.status_code}]: {resp.json()}")
             print(resp.cookies)
-            exit(1)
-        else:
-            print(f"User {self.username} successfully authenticated")
+            return
+
+        print(f"User {self.username} successfully authenticated")
 
     def post_config(self):
         resp = self.post_wrapper(f"users/{self.username}/config", self.config)

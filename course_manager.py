@@ -139,16 +139,6 @@ class GetStockChart(Resource):
         else:
             abort(404, message=f"Either year is invalid or major does not exist") 
 
-# /api/<school>/users/<user>
-class TestUserAuth(Resource):
-    def __init__(self, client):
-        self.client = client
-
-    @requires_login
-    def get(self, school, user):
-        return {"message": f"User {user} at school {school} is " +
-                "successfully authenticated for this endpoint"}, 200
-
 # /api/<school>/users/<user>/config
 class UserConfig(Resource):
     def __init__(self, client):
